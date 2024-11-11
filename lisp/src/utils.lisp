@@ -58,15 +58,17 @@
 
 (defun sse4.2-f32+* (vector0 vector1)
   (declare (type (simple-array sb-simd-sse4.2:f32) vector0 vector1))
-  (let ((length (min (length vector0) (length vector1))))
+  (let ((end (* (floor (min (length vector0) (length vector1)) 8) 8)))
     (multiple-value-call 'sb-simd-sse4.2:f32+
       (sb-simd-sse4.2:f32.4-values
-       (do ((i 0 (+ i 8))
+       (do ((i 0 (+ i 4))
             (sum (sb-simd-sse4.2:f32.4 0.0)
                  (sb-simd-sse4.2:f32.4+ (sb-simd-sse4.2:f32.4* (sb-simd-sse4.2:f32.4-aref vector0 i)
                                                                (sb-simd-sse4.2:f32.4-aref vector1 i))
                                         sum)))
-           ((<= length i) sum)
+           ((<= end i) (sb-simd-sse4.2:f32.4+ (sb-simd-sse4.2:f32.4* (sse4.2-f32.4-stump vector0 i 0.0)
+                                                                     (sse4.2-f32.4-stump vector1 i 0.0))
+                                              sum))
          (declare (dynamic-extent sum)))))))
 
 (defun fma-f32+* (vector0 vector1)
@@ -85,6 +87,18 @@
                                      sum))
          (declare (dynamic-extent sum)))))))
 
+
+(defun sse4.2-f32.4-stump (vector start default-value)
+  (declare (type (vector sb-simd-sse4.2:f32) vector)
+           (type fixnum start)
+           (type sb-simd-sse4.2:f32 default-value))
+  (let ((stump (make-array 4 :element-type 'sb-simd-sse4.2:f32
+                             :initial-element default-value)))
+    (declare (dynamic-extent stump))
+    (sb-simd-sse4.2:f32.4-aref (dotimes (i (min 4 (- (length vector) start)) stump)
+                                 (setf (aref stump i)
+                                       (aref vector (+ i start))))
+                               0)))
 
 (defun fma-f32.8-stump (vector start default-value)
   (declare (type (vector sb-simd-fma:f32) vector)
