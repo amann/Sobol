@@ -274,7 +274,7 @@ NBR-POINTS must be of the form 2^k - 1 with 0 < k <= 20 and DIMENSION must be be
 
 (defun sym-index (i j)
   (declare (type (integer 0) i j))
-  (cond ((<= i j) (sym-index j i))
+  (cond ((< i j) (sym-index j i))
         (t (+ (/ (* (1+ i) i) 2) j))))
 (defstruct (symmetric-matrix
             (:constructor make-symmetric-matrix
