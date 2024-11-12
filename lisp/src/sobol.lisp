@@ -283,6 +283,7 @@ NBR-POINTS must be of the form 2^k - 1 with 0 < k <= 20 and DIMENSION must be be
                    (data (make-array (sym-index dimension 0)
                                      :element-type 'single-float
                                      :initial-element initial-element)))))
+  dimension
   data)
 (defmethod mref ((matrix symmetric-matrix) row col)
   (with-slots (data)
