@@ -223,6 +223,17 @@ NBR-POINTS must be of the form 2^k - 1 with 0 < k <= 20 and DIMENSION must be be
                                      (aref vector (+ i start))))
                              0)))
 
+(defun shuffle (vector mask)
+  (multiple-value-bind (mult rem)
+      (floor (length vector) 8)
+    (let ((end (* mult 8)))
+     (do ((i 0 (+ i 8)))
+         ((<= end i) (dotimes (i rem vector)
+                       (let ((i (+ end i)))
+                         (setf (aref vector i) (logxor (aref vector i) mask)))))
+       (setf (sb-simd-avx2:s32.8-aref vector i)
+             (sb-simd-avx2:s32.8-xor (sb-simd-avx2:s32.8-aref vector i) mask))))))
+
 
 (defun scale-sobol-points (sobol-points)
   (let ((factor (coerce (expt 2
