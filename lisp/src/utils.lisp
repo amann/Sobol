@@ -130,57 +130,59 @@
        (flet ((,act-on (,start ,end)
                 (lambda ()
                   (let ,thread-specific-bindings
-                    (do* ((,i ,start (1+ ,i))
-                          (,var ,i ,i))
-                         ((<= ,end ,i)
-                          (when (zerop (bt2:atomic-integer-decf ,nbr-active-threads))
-                            (bt2:signal-semaphore ,finished)))
-                      (declare (ignorable ,var))
-                      ,@body)))))
-         (handler-case
-             (progn
-               (do-partitions (,index ,start ,end)
-                   (,count-var ,nbr-threads)
-                 (setf (aref ,threads ,index)
-                       (bt2:make-thread (,act-on ,start ,end))))
-               (bt2:wait-on-semaphore ,finished))
-           (error (err)
-             (map nil (lambda (thread)
-                        (when (bt2:thread-alive-p thread)
-                          (bt2:destroy-thread thread)))
-                  ,threads)
-             (bt2:signal-semaphore ,finished)
-             (error err))))
+                    (unwind-protect
+                         (do* ((,i ,start (1+ ,i))
+                               (,var ,i ,i))
+                              ((<= ,end ,i))
+                           (declare (ignorable ,var))
+                           ,@body)
+                      (when (zerop (bt2:atomic-integer-decf ,nbr-active-threads))
+                        (bt2:signal-semaphore ,finished)))))))
+         (do-partitions (,index ,start ,end
+                                (bt2:wait-on-semaphore ,finished))
+             (,count-var ,nbr-threads)
+           (setf (aref ,threads ,index)
+                 (bt2:make-thread (,act-on ,start ,end)))))
        (let ((,var ,count-var))
          (declare (ignorable ,var))
          ,result))))
 
 
 
-(defmacro do-partitions ((index-var start-var end-var)
+(defmacro do-partitions ((index-var start-var end-var &optional result)
                          (total-number number-partitions)
                          &body body)
-  (let ((number (gensym "NUMBER"))
-        (divisor (gensym "DIVISOR"))
-        (cursor (gensym "CURSOR"))
-        (k (gensym "K"))
-        (r (gensym "R"))
-        (i (gensym "I")))
+  "Subdivide TOTAL-NUMBER into NUMBER-PARTITIONS partitions, \
+and for each such partition successively execute BODY with \
+INDEX-VAR bound to the index of the partition, START-VAR bound \
+to the start of the partition and END-VAR to the upper bound \
+of the partition. At the end, the expression RESULT is evaluated \
+with INDEX-VAR bound to NUMBER-PARTITIONS and START-VAR and END-VAR 
+bound to TOTAL-NUMBER."
+  (alexandria:with-gensyms (number divisor cursor k r i)
     `(let ((,number ,total-number)
            (,divisor ,number-partitions))
        (multiple-value-bind (,k ,r)
            (floor ,number ,divisor)
          (let ((,cursor 0))
-           (dotimes (,i ,divisor)
+           (dotimes (,i ,divisor
+                        ,(when result
+                           `(let ((,index-var ,i)
+                                  (,start-var ,cursor)
+                                  (,end-var ,cursor))
+                              (declare (ignorable ,index-var ,start-var ,end-var))
+                              ,result)))
              (let ((,index-var ,i)
                    (,start-var ,cursor)
                    (,end-var (incf ,cursor (+ ,k (if (< ,i ,r) 1 0)))))
+               (declare (ignorable ,index-var ,start-var ,end-var))
                ,@body)))))))
 
 
 
 (defmacro while (condition &body body)
-  (let ((start '#:start))
+  "Execute BODY while CONDITION is true."
+  (alexandria:with-gensyms (start)
     `(tagbody
         ,start
         (when ,condition
