@@ -51,6 +51,40 @@
 
 ;;;; ==== SIMD ====
 
+
+
+
+
+
+(defmacro make-stump-simdpack-function (simd-pack-type)
+  (declare (type symbol simd-pack-type))
+  (eval-when (:compile-toplevel :load-toplevel :execute)
+    (let ((fct-name (intern (format nil "~A-STUMP"
+                                    (symbol-name simd-pack-type))))
+          (aref-name (find-symbol (format nil "~A-AREF" simd-pack-type) (symbol-package simd-pack-type)))
+          (element-type (find-symbol (let ((name (symbol-name simd-pack-type)))
+                                       (subseq name 0 (position #\. name)))
+                                     (symbol-package simd-pack-type)))
+          (pack-size  (let ((name (symbol-name simd-pack-type)))
+                        (parse-integer (subseq name (1+ (position #\. name)))))))
+      (if (fboundp fct-name)
+          (warn "Duplicate stump simdpack function ~S." fct-name)
+          `(defun ,fct-name (vector start default-value)
+             (declare (type (vector ,element-type) vector)
+                      (type fixnum start)
+                      (type ,element-type default-value))
+             (let ((stump (make-array ,pack-size :element-type ',element-type
+                                                 :initial-element default-value)))
+               (declare (dynamic-extent stump))
+               (,aref-name
+                (dotimes (i (min ,pack-size (- (length vector) start)) stump)
+                  (setf (aref stump i)
+                        (aref (vector (+ i start)))))
+                0)))))))
+
+(make-stump-simdpack-function sb-simd-avx2:f32.8)
+
+
 (defun f32+* (vector0 vector1)
   (sb-simd:instruction-set-case
     (:fma (fma-f32+* vector0 vector1))
