@@ -1,0 +1,215 @@
+
+\(\newcommand{\corr}{\operatorname{\rho}}\)
+\(\newcommand{\cov}{\operatorname{cov}}\)
+\(\newcommand{\expect}{\operatorname{\mathrm{E}}}\)
+\(\newcommand{\HKVar}{\operatorname{\mathrm{Var}_{\mathrm{HK}}}}\)
+\(\newcommand{\abs}[1]{\left|#1\right|}\)
+\(\newcommand{\set}[1]{\left\{#1\right\}}\)
+\(\newcommand{\parens}[1]{\left(#1\right)}\)
+\(\newcommand{\coeff}[2]{{#1}^{(#2)}}\)
+\(\newcommand{\R}{\Bbb{R}}\)
+\(\newcommand{\sampleMean}[3]{\frac{1}{#2}\sum_{#1=1}^{#2}{#3}}\)
+
+
+
+* Sobol' Numbers in Financial Monte-Carlo Simulations
+
+In this note, we discuss the possible use of Sobol' numbers in the generation process of economic scenarios for valuing balance sheets of complex financial instruments.
+
+** Economic Scenario Model
+ 
+An economic scenario model $\mathcal{M}$ consists of a set $\mathcal{M} = \set{F_{1,t_1}, \ldots, F_{1,t_L}, \ldots, F_{K,t_1}, \ldots, F_{K,t_L}}$ of  $K\times L$ random variables simulating the values of a price factor $F_k(t_l)$  at time horizon $t_l$.  These random variables may have functional dependences between each other, however, at the end, the whole set of scenarios depends on a set $\set{Y_1, \ldots, Y_M}$ of $M$ correlated standard normal random variables.
+
+Let $C = \parens{\corr (Y_i,Y_j)}_{i,j}$ be the correlation matrix of the random variables $Y_d$.  Since the matrix $C$ is real symmetric and positive semi-definite, there exists an orthogonal matrix $Q = \parens{q_{i,j}}_{i,j}$, such that $\Lambda = QCQ^T$ is diagonal with the diagonal coefficients $\lambda_{i,i}\geq0$, where we can suppose that the first $D$ coefficients $\lambda_{i,i}$ are strictly positive and the remaining $M-D$ zero if $M > D$.  Thus, discarding the $M-D$ zero coefficients, there exist $D$ independent standard normal random variables $X_1, \ldots, X_D$ with
+$$\begin{equation}
+Y_j = \sum_{i=1}^Dq_{i,j}\cdot\sqrt{\lambda_{i,i}}X_i\label{eq:correl}\text.
+\end{equation}$$
+
+In this sense, we consider the economic scenario model $\mathcal{M}$ as a function $\mathcal{M}(X_1, ..., X_D)$ of the $D$ independent standard normal random variables $X_1, ..., X_D$.
+
+*** Sampling
+
+In order to generate a sample $\tilde\mathcal{M}$ of length $N$ of the economic scenario model, we need to generate a set of samples $\tilde{X}_1, \ldots, \tilde{X}_D$ for each $X_i$.  Traditionally, one uses a combination of a pseudo random number generator for generating independent uniformly distributed samples $\tilde{U}_1, \ldots, \tilde{U}_D$ and a transformation method like Box-Muller for transforming the uniformly distributed samples to independent (standard) normally distributed samples $\tilde{X}_1, \ldots, \tilde{X}_D$.  If we write for a sample $\tilde{X}_i = (x_{i,1}, \ldots, x_{i,N})$, using $\eqref{eq:sample}$,the result of
+$$\tilde{Y}_j = \left(y_{j,1}, \ldots, y_{j,N}\right) = \sum_{i=1}^Dq_{i,j}\cdot\sqrt{\lambda_{i,i}}(x_{i,1}, \ldots, x_{i,N})\text,$$
+or in matrix notation,
+$$\tilde{Y} := \parens{y_{j,r}}_{j=1,r=1}^{D,N} = Q\tilde{X}\text,$$
+with $\tilde{X} = \parens{x_{i,r}}_{i=1,r=1}^{D,N}$.
+
+** Quasi-Monte Carlo Method
+
+Quasi-Monte Carlo methods are used for numerical integration by using low-discrepancy sequences.  The problem which the Monte Carlo as well as the quasi-Monte Carlo methods try to solve, is to approximate the integral of a function $f$ on, say, the \(D\)-dimensional unit cube as the average of the function evaluated at a set of points $x_1, ..., x_N \in [0,1]^D$:
+$$\int_{[0,1]^D}f(u)du\approx\frac{1}{N}\sum_{i=1}^Nf(x_i)\text.$$
+The difference between the Monte Carlo and the quasi-Monte Carlo methods is choice of the evaluation points $x_i$.  The Monte Carlo method uses pseudo-random numbers, whereas the quasi-Monte Carlo method uses low-discrepancy sequences.  The Koksma-Hlawka inequality gives us an upper bound for the approximation error by the product of two independent factors.  One of these factors depends only on the variation of the function $f$ and the other factor depends only on a property (the star discrepancy) of the set of evaluation points $x_1, ..., x_N$.  The discrepancy measures the deviation of the empirical distribution of those points and the Lebesgue measure $\mu$.
+
+**** Definition Discrepancy
+#+BEGIN_QUOTE
+The /discrepancy/ $D_N(P)$ of a set $P=\{x_1, ..., x_N\}\subset\prod_{i=1}^D[0,1) \subset\Bbb R^D$ is
+$$D_N(P) = \sup_{B \in J}\left|\frac{\sharp(B\cap P)}N - \mu(B)\right|\text,$$
+where $\mu$ is the \(D\)-dimensional Lebesgue mesure,  and $J$ is the set of  \(D\)-dimensional intervals $\prod_{i=1}^D[a_i,b_i)$ with $a_i, b_i\in[0,1)$ and $a < b$.
+#+END_QUOTE
+
+A slightly simpler characterization of discrepancy is the star discrepancy.
+
+**** Definition Star Discrepancy
+#+BEGIN_QUOTE
+The /star discrepancy/ $D_N^*(P)$ of a set $P=\{x_1, ..., x_N\}\subset\prod_{i=1}^D[0,1) \subset\Bbb R^D$ is
+$$D_N^*(P) = \sup_{B \in J^*}\left|\frac{\sharp(B\cap P)}N - \mu(B)\right|\text,$$
+where $\mu$ is the \(D\)-dimensional Lebesgue mesure,  and $J^*$ is the set of  \(D\)-dimensional intervals $\prod_{i=1}^D[0,u_i)$ with $u_i\in[0,1)$.
+#+END_QUOTE
+
+The two are related by
+$$D_N^* \leq D_N \leq 2^DD_N^*\text.$$
+
+In order to be able to quantify the convergence of the quasi-Monte Carlo method  for integration,  the integrand function $f$ needs to satisfie some bounded variation condition.
+
+**** Lower Bounds
+ It is conjuctured that the lower bound of the star discrepancy for each finite set $\set{x_1, ...,x_N}\subset[0,1]^D$ is $C_D\frac{\log(N)^{D-1}}{N}$ for some constant $C_D>0$ depending only on the dimension $D$.
+
+ TODO Other lower bounds.
+
+*** The Koksma-Hlawka Inequality
+#+BEGIN_QUOTE
+If $f$ is a function which has /bounded variation/ $\HKVar(f)$ on the \(D\)-dimensional unit cube $[0,1]^D$ in the sense of /Hardy and Krause/, then for any set of points $x_1, ..., x_N$ in $[0,1)^D$, we have
+$$\abs{\frac{1}{N}\sum_{i=1}^Nf(x_i) - \int_{[0,1)^D}f(u)du} \leq \HKVar(f)D_N^*(x_1,...,x_N)\text.$$
+#+END_QUOTE
+
+Let $a,b\in[0,1]^D$ for which the coefficients satisfie $\coeff{a}{i} < \coeff{b}{i}$ for all $i=1, ...,D$. We write in this case $a < b$ and the hyper-rectangle $[a,b]:=\prod_{i=1}^D[\coeff{a}{i},\coeff{b}{i}]$. This hyper rectangle has $2^D$ corners which are exactly those points $x$ whose coefficients are either coefficients of $a$ or coefficients of $b$. For a corner $x$ of $[a,b]$, we denote by $\sharp_a^x$ the number of coefficients of $x$ which are coefficients of $a$.
+
+Consider now a function $f$ defined on the \(D\)-dimensional unit cube $[0,1]^D$. 
+
+The \(D\)-fold alternate sum of $f$ over the hyper rectangle $[a,b]$  is
+$$\Delta(f;a,b) = \sum_{x\in\mathrm{Corners\ of }[a,b]}(-1)^{\sharp_a^x}f(x)$$
+
+For each dimension $i$, we consider a sequence $0 = \coeff{c_0}{i} <...< \coeff{c_{k_i}}{i} = 1$.  The cartesian product $\mathcal{C} = \prod_{i=1}^D\set{\coeff{c_0}{i}, ..., \coeff{c_{k_i}}{i}} \subset [0,1]^D$ consists of the corners of a pavement of $[0,1]^D$ by hyper rectangles $[c,c']$ with $c,c'\in\mathcal{C}$ and $c < c'$.
+
+The variation of $f$ over $\mathcal{C}$ is
+$$V_{\mathcal{C}}(f)=\sum_{c,c'\in\mathcal{C}:\atop c < c'}\abs{\Delta(f;c,c')}\text.$$
+
+*** Definition Bounded Variation in the sense of Vitali-Lebesgue-Fréchet-de la Vallée Poussin
+#+BEGIN_QUOTE
+The /variation of $f$ in the sense of Vitali/ is
+$$V_{\mathrm{V}}(f) = \sup_{\mathcal{C}}V_{\mathcal{C}}(f)\text.$$
+#+END_QUOTE
+
+*** Definition Bounded Variation in the sense of Hardy and Krause
+#+BEGIN_QUOTE
+The variation of $f$ in the sense of Hardy and Krause is
+$$\HKVar{f} = \text.$$
+#+END_QUOTE
+
+** Valuation of Instruments using an Economic Scenario Model
+
+We are now interested to quantify the convergence of the valuation by quasi-Monte Carlo of financial instruments using an economic scenario model.  Let $\mathcal{M}$ a risk neutral economic scenario model and $\tilde\mathcal{M}=\tilde\mathcal{M}(\tilde{X_1}, ...,\tilde{X_D})$ its sampled scenarios via a set of $D$ independently standard normally distributed samples $\tilde{X_1}, ...,\tilde{X_D}$ of length $N$. 
+
+A standard normal random variable $X_i$ can be seen as the transformation of a standard uniform random variable $U_i$ by the inverse $\Phi^{-1}$ of the cumulative standard normal distribution function, i.e. $X_i = \Phi^{-1}(U_i)$. For independent standard normal random variables $X_1, ..., X_D$, the cartesian product $X = \parens{X_1, ..., X_D}$ is multivariate standard normally distributed and $X = \Phi^{-1}\times ...\times\Phi^{-1}\parens{U_1, ..., U_D} = \Phi^{-1}\times ...\times\Phi^{-1}(U)$, with $U = \parens{U_1, ..., U_D}$ multivariate standard uniformly distributed.
+
+For a sample $\tilde{U} = \parens{\tilde{U}_1, ..., \tilde{U}_D}$ of length $N$, we write $u_i = \parens{\coeff{u_i}{1}, ..., \coeff{u_i}{D}}$ the \(i\)th trial of $\tilde{U}$. 
+Let $V_{\mathcal{M}}(U)$ be the random variable representing the value of a portfolio in the model $\mathcal{M}$ and $V_{\tilde{\mathcal{M}}}(u_i)$ the value of that portfolio for the \(i\)th trial $u_i$. The model $\mathcal{M}$ being risk neutral, the theoretical value of the portfolio is $\expect[{V_{\mathcal{M}}}]$. We want to approximate this value by $\sampleMean{i}{N}{V_{\tilde{\mathcal{M}}}(u_i)}$.
+
+*** Applying the Koksma-Hlawka Inequality
+
+Now comes the hairy part: If the function $V_{\tilde{\mathcal{M}}}$ is bounded in the sense of Hardy and Krause, then, given a sample $\tilde{U}=\set{u_1, ..., u_N}$ of the \(D\)-multivariate standard uniformly distributed random variable $U$, we have
+$$\abs{\sampleMean{i}{N}{V_{\tilde{\mathcal{M}}}(u_i)} - \expect[{V_{\mathcal{M}}}]} \leq \HKVar{V_{\tilde{\mathcal{M}}}}\cdot D_N^*(u_1, ..., u_N)\text.$$
+
+***** Question
+- Is $V_{\tilde{\mathcal{M}}}$ bounded in the sense of Hardy and Krause?
+
+** Sobol' Numbers
+
+In order to improve the approximation result in Monte Carlo simulations, an idea is to use quasi-random numbers which generate low discrepancy sequences. There are several methods for generating low discrepancy sequences. One of them are the Sobol' Numbers.
+
+It can be shown that the star discrepancy of a \(D\)-dimensional Sobol' number sequence $S=\set{s_1, ..., s_N}$ is bounded by
+$C\frac{\log(N)^D}{N}$ for some constant $C>0$. The conjectured lower bound for the star would mean that those sequences are in some sense optimal. Notice however, that for large dimension $D$ this upper bound begins its asymptotical behavior only for $N > e^D$ which is a large number. Therefore there is no guarantee that in large dimension the convergence with Sobol' is better than with random number
+
+*** Generation of Sobol' Numbers
+
+*** Correlation of the Coordinate Samples
+
+A problem with the Sobol' sequence $S=\set{s_1, ..., s_N}$ is that when we consider the samples of the coefficients $\parens{\coeff{S}{1}, ..., \coeff{S}{D}} = \parens{\parens{\coeff{s_1}{1}, ..., \coeff{s_N}{1}}, ..., \parens{\coeff{s_1}{D}, ..., \coeff{s_N}{D}}}$, those $\coeff{S}{i}$ are not independent.
+
+One suggestion would be to transform them to $\parens{\coeff{\Xi}{1}, ..., \coeff{\Xi}{D'}} = \parens{\Phi^{-1}(\coeff{S}{1}), ..., \Phi^{-1}(\coeff{S}{D'})}$, compute their correlation matrix $\Gamma$, which we diagonalize orthogonally 
+
+
+$$f_i\subset E_i\times F_i$$
+$$f_1\times ... \times f_n \subset (E_1\
+
+
+
+
+
+
+
+#+begin_src bash :results output :exports none
+  cd ~/projects/Sobol/c++/
+  ./Sobol.exe 31 3 ../new-joe-kuo-6.21201
+#+end_src
+
+#+RESULTS:
+#+begin_example
+0.5 0.5 0.5 
+0.75 0.25 0.25 
+0.25 0.75 0.75 
+0.375 0.375 0.625 
+0.875 0.875 0.125 
+0.625 0.125 0.875 
+0.125 0.625 0.375 
+0.1875 0.3125 0.9375 
+0.6875 0.8125 0.4375 
+0.9375 0.0625 0.6875 
+0.4375 0.5625 0.1875 
+0.3125 0.1875 0.3125 
+0.8125 0.6875 0.8125 
+0.5625 0.4375 0.0625 
+0.0625 0.9375 0.5625 
+0.09375 0.46875 0.46875 
+0.59375 0.96875 0.96875 
+0.84375 0.21875 0.21875 
+0.34375 0.71875 0.71875 
+0.46875 0.09375 0.84375 
+0.96875 0.59375 0.34375 
+0.71875 0.34375 0.59375 
+0.21875 0.84375 0.09375 
+0.15625 0.15625 0.53125 
+0.65625 0.65625 0.03125 
+0.90625 0.40625 0.78125 
+0.40625 0.90625 0.28125 
+0.28125 0.28125 0.15625 
+0.78125 0.78125 0.65625 
+0.53125 0.03125 0.40625 
+0.03125 0.53125 0.90625 
+
+#+end_example
+
+
+
+
+
+
+
+
+
+** Some Formulas
+
+Let $n=2^k - 1$
+We construct the Sobol' sequence of length \(n\) by
+$$S_j(n) =  0, -2^{k-1}, 2^{k-1}, -3\cdot 2^{k-2}, 3\cdot 2^{k-2}, -2^{k-2}, 2^{k-2},\ldots$$
+We have
+$$Var(S(n))=\frac{1}{n-1}\sum_{i=0}^{2^{k-1}-1} i^2 = \frac{1}{n-1}\sum_{i=1}^{\frac{n-1}{2}} i^2 = \frac{1}{n-1}\frac{1}{6}\frac{n-1}{2}\frac{n+1}{2}n = \frac{n}{n-1}\frac{n^2 - 1}{12}$$
+
+
+
+
+** Discrepancy
+
+
+* References
+
+[1] James A. Clarkson, Raymond Adams, /On Definitions of Bounded Variation for Functions of Two Variables/, American Mathematical Society, 1932, https://www.ams.org/journals/tran/1933-035-04/S0002-9947-1933-1501718-2/S0002-9947-1933-1501718-2.pdf
+
+[2] /Low-discrepancy sequence/, Wikipedia, https://en.wikipedia.org/wiki/Low-discrepancy_sequence
+
+[3]  Christoph Aistleitner, Florian Pausinger, Anne Marie Svane, Robert F. Tichy, /On functions of bounded variation/, Mathematical Proceedings of the Cambridge Philosophical Society -1(3), June13 2016, https://arxiv.org/pdf/1510.04522
+
+[4] Art B. Owen, /Multidimensional variation for quasi-Monte Carlo/, Contemporary multivariate
+analysis and design of experiments, 49-74, Ser. Biostat. 2, World Sci. Publ., Hackensack,
+NJ, 2005, https://artowen.su.domains/reports/ktfang.pdf
