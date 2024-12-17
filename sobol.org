@@ -1,17 +1,24 @@
 
 \(\newcommand{\corr}{\operatorname{\rho}}\)
 \(\newcommand{\cov}{\operatorname{cov}}\)
-\(\newcommand{\expect}{\operatorname{\mathrm{E}}}\)
+\(\newcommand{\expect}[1]{\operatorname{\Bbb{E}}\left[#1\right]}\)
+\(\newcommand{\proba}[1]{\operatorname{\Bbb{P}}\left[#1\right]}\)
 \(\newcommand{\HKVar}{\operatorname{\mathrm{Var}_{\mathrm{HK}}}}\)
 \(\newcommand{\abs}[1]{\left|#1\right|}\)
 \(\newcommand{\set}[1]{\left\{#1\right\}}\)
 \(\newcommand{\parens}[1]{\left(#1\right)}\)
-\(\newcommand{\coeff}[2]{{#1}^{(#2)}}\)
+\(\newcommand{\transpose}[1]{{#1}^{\mathrm{t}}}\)
 \(\newcommand{\R}{\Bbb{R}}\)
+\(\newcommand{\Rho}{\mathrm{P}}\)
 \(\newcommand{\sampleMean}[3]{\frac{1}{#2}\sum_{#1=1}^{#2}{#3}}\)
 \(\newcommand{\diag}[3]{\operatorname{diag}\parens{#1}_{#2=1}^{#3}}\)
 \(\newcommand{\infiniteNorm}[1]{\left\lVert{}#1\right\rVert_\infty}\)
 \(\newcommand{\scalarProd}[2]{\left\langle #1,#2\right\rangle}\)
+\(\newcommand{\vector}[1]{\mathbfit{\boldsymbol{#1}}}\)
+\(\newcommand{\component}[2]{\vector{#1}^{(#2)}}\)
+\(\newcommand{\explicitVector}[2]{\transpose{\parens{#1, ..., #2}}}\)
+\(\newcommand{\explicitComponentVector}[2]{\explicitVector{\component{#1}{1}}{\component{#1}{#2}}}\)
+
 
 
 
@@ -19,129 +26,203 @@
 
 In this note, we discuss the possible use of Sobol' numbers in the generation process of economic scenarios for valuing balance sheets of complex financial instruments.
 
-** Economic Scenario Model
- 
-An economic scenario model $\mathcal{M}$ consists of a set $\mathcal{M} = \set{F_{1,t_1}, \ldots, F_{1,t_L}, \ldots, F_{K,t_1}, \ldots, F_{K,t_L}}$ of  $K\times L$ random variables simulating the values of a price factor $F_k(t_l)$  at time horizon $t_l$.  These random variables may have functional dependences between each other, however, at the end, the whole set of scenarios depends on a set $\set{Y_1, \ldots, Y_M}$ of $M$ correlated standard normal random variables.
+** Valuation of Instruments using an Economic Scenario Model
 
-Let $C = \parens{\corr (Y_i,Y_j)}_{i,j}$ be the correlation matrix of the random variables $Y_d$.  Since the matrix $C$ is real symmetric and positive semi-definite, there exists an orthogonal matrix $Q = \parens{q_{i,j}}_{i,j}$, such that $\Lambda = QCQ^T$ is diagonal with the diagonal coefficients $\lambda_{i,i}\geq0$, where we can suppose that the first $D$ coefficients $\lambda_{i,i}$ are strictly positive and the remaining $M-D$ zero if $M > D$.  Thus, discarding the $M-D$ zero coefficients, there exist $D$ independent standard normal random variables $X_1, \ldots, X_D$ with
-$$\begin{equation}
-Y_j = \sum_{i=1}^Dq_{i,j}\cdot\sqrt{\lambda_{i,i}}X_i\label{eq:correl}\text.
-\end{equation}$$
+ We consider a risk free economic scenario model $\mathcal{M}$ consisting of a set $\mathcal{M} = \set{\varphi_{1,t_1}, \ldots, \varphi_{1,t_L}, \ldots, \varphi_{K,t_1}, \ldots, \varphi_{K,t_L}}$ of  $K\times L$ random variables simulating the values of a price factor $\varphi_k(t_l)$  at time horizon $t_l$.  These random variables may have functional dependences between each other, however, at the end, the whole set of scenarios is driven by a random vector $\vector{X}=\explicitComponentVector{X}{D}:\Omega\to\R^D$ of dimension $D$ whith multivariate distribution function $H$ on a probability space $(\Omega,\mathcal{F},\Bbb{P})$ and whose components $\component{X}{d} \sim F_d$ are random variables with some marginal distribution $F_d(x) = \proba{\component{X}{d}\leq x}$.
 
-In this sense, we consider the economic scenario model $\mathcal{M}$ as a function $\mathcal{M}(X_1, ..., X_D)$ of the $D$ independent standard normal random variables $X_1, ..., X_D$.
+The random value of a balance sheet of financial instruments in this model is a measurable function $V_0:\R^D\to\R$ and the present value is $\mathcal{V}=\expect{V_0(\vector{X})}$.
 
-*** Sampling
+By Sklar's theorem, there exists a unique copula $C_H:[0,1]^D\to[0,1]$, with  $$\vector{H}(\vector{x}) = \explicitVector{F_1(\component{x}{1})}{F_D(\component{x}{D})}\text.$$
+This means that the dependence structure of $\vector{X}$ is expressed by the copula function which allows us to write the present value $\mathcal{V}$ as
+$$V = \expect{V(\vector{U})} = \expect{V_0(\vector{X})}\text,$$
+where $\vector{U}=\explicitComponentVector{U}{D}:\Omega\to\R^D$ is a random vector with distribution function $C_H$ and the function $V$ is defined as
+$$V=V_0\circ{}F_1^-\times\ldots\times{}F_D^-$$
+with, for $1\leq d\leq D$, the marginal quantile functions
+$$F_d^-(p) = \inf\set{x\in\R\mid F_d(x)\geq p}\text.$$
 
-In order to generate a sample $\tilde\mathcal{M}$ of length $N$ of the economic scenario model, we need to generate a set of samples $\tilde{X}_1, \ldots, \tilde{X}_D$ for each $X_i$.  Traditionally, one uses a combination of a pseudo random number generator for generating independent uniformly distributed samples $\tilde{U}_1, \ldots, \tilde{U}_D$ and a transformation method like Box-Muller for transforming the uniformly distributed samples to independent (standard) normally distributed samples $\tilde{X}_1, \ldots, \tilde{X}_D$.  If we write for a sample $\tilde{X}_i = (x_{i,1}, \ldots, x_{i,N})$, using $\eqref{eq:sample}$,the result of
-$$\tilde{Y}_j = \left(y_{j,1}, \ldots, y_{j,N}\right) = \sum_{i=1}^Dq_{i,j}\cdot\sqrt{\lambda_{i,i}}(x_{i,1}, \ldots, x_{i,N})\text,$$
-or in matrix notation,
-$$\tilde{Y} := \parens{y_{j,r}}_{j=1,r=1}^{D,N} = Q\tilde{X}\text,$$
-with $\tilde{X} = \parens{x_{i,r}}_{i=1,r=1}^{D,N}$.
+Hence, if $C_H$ and the margins $F_d$, $1\leq d\leq D$, are known, we can use Monte Carlo simulation to estimate $\mathcal{V} = \expect{V(\vector{U})}$.  For a random sample $\set{\vector{u}_1,...,\vector{u}_N}$ from $C_H$, the Monte Carlo estimator of $\mathcal{V}$ is
+$$\sampleMean{i}{N}{V(\vector{u}_i)} \simeq \expect{V(\vector{U})}\text.$$
 
-** Quasi-Monte Carlo Method
+The remaining problem is to find a way to sample $\vector{U}\sim C_H$.
 
-Quasi-Monte Carlo methods are used for numerical integration by using low-discrepancy sequences.  The problem which the Monte Carlo as well as the quasi-Monte Carlo methods try to solve, is to approximate the integral of a function $f$ on, say, the \(D\)-dimensional unit cube as the average of the function evaluated at a set of points $x_1, ..., x_N \in [0,1]^D$:
-$$\int_{[0,1]^D}f(u)du\approx\frac{1}{N}\sum_{i=1}^Nf(x_i)\text.$$
-The difference between the Monte Carlo and the quasi-Monte Carlo methods is choice of the evaluation points $x_i$.  The Monte Carlo method uses pseudo-random numbers, whereas the quasi-Monte Carlo method uses low-discrepancy sequences.  The Koksma-Hlawka inequality gives us an upper bound for the approximation error by the product of two independent factors.  One of these factors depends only on the variation of the function $f$ and the other factor depends only on a property (the star discrepancy) of the set of evaluation points $x_1, ..., x_N$.  The discrepancy measures the deviation of the empirical distribution of those points and the Lebesgue measure $\mu$.
+** Conditional Distribution Method
+
+A method for creating samples of $\vector{U}\sim C_H$ is for instance described in [5], and is called /conditional distribution method (CDM)/.  The idea is, given a copula $C$, to find a transformation function $\phi_C:[0,1]^d\to[0,1]^d$ which transforms a uniformly distributed random vector $\vector{U}' \sim \mathrm{U}[0,1,]^d$ into a random vector $\vector{U} := \phi_C(\vector{U}') \sim C$.
+
+In this section, we use following notation. If $\vector{x} = \explicitComponentVector{x}{d}$ is a (random) vector of dimension $d$, we write $\vector{x}_{(k)} := \explicitComponentVector{x}{k}$ the restriction to the first $k \leq d$ components of $\vector{x}$.
+
+For $2\leq k \leq d$, let
+$$C_{\vector{u}}(u) = \proba{\component{U}{k} \leq u \mid \vector{U}_{(k-1)} = \vector{u}}$$
+denote the conditional copula of $\component{U}{k}$ at  $u$ given $\vector{U}_{(k-1)}=\vector{u}\in[0,1]^{k-1}$
+and
+$$C_{\vector{u}}^-(p) = \inf\set{u\mid C_{\vector{u}}(u) \geq p}$$
+its quantile function. 
+
+*Theorem*
+#+BEGIN_QUOTE
+The recursively defined transformation function
+\begin{align*}
+ \phi_C : [0,1]^d &\to [0,1]^d\\
+\vector{v} = \explicitComponentVector{v}{d} &\mapsto \vector{u}
+ = \explicitVector{\component{v}{1}, C_{\vector{u}_{(1)}}^-(\component{v}{2})}
+{C_{\vector{u}_{(d-1)}}^-(\component{v}{d})}
+\end{align*}
+transforms a uniformly distributed random vector $\vector{U}' \sim \mathcal{U}[0,1]^d$ into a random vector $\vector{U} := \phi_C(\vector{U}') \sim C$.
+#+END_QUOTE
+As corollary, using Sklar's theorem, if $H$ is a \(d\)-dimensional absolutely continuous distribution function with margins $F_1, ..., F_d$ and copula $C$, for $1\leq k \leq d-1$ and $\vector{u}\in[0,1]^k$, the conditional copula $C_{\vector{u}}$ satisfies
+$$C_{\vector{u}}(u) = H_{F_1^-\times...\times F_k^-(\vector{u})}\left(F_{k+1}^-(u)\right)\text,$$
+where
+$$H_{\vector{x}}(x)=\proba{\component{X}{k+1} \leq x \mid \vector{X}_{(k)} = \vector{x}}\text,$$
+for some random vector $\vector{X} \sim H$ and some \(k\)-dimensional vector $\vector{x}$ and where
+$$F_i^-(p) = \inf\set{x\mid F_i(x)\geq p}$$
+is the quantile function of $F_i$.
+
+The economic models $\mathcal{M}(\vector{X})$ we mostly use, depend on a \(D\)-dimensional multivariate normally distributed random vector $\vector{X}$.  in the next section we shall investigate this case.
+
+*** Normal Distribution and Gaussian Copula
+
+We consider $H = \Phi_{\vector{\mu},\Rho}$ the \(d\)-dimensional multivariate normal distribution function for which we suppose, without loss of generality, that the location vector $\vector{\mu} = \vector{0}$ and the scale matrix $\Rho$ is a correlation matrix of maximal rank, hence positive definite.
+
+It can be shown (see [7]), that for $1 \leq k \leq d-1$ and a \(k\)-dimensional vector $\vector{x}$ the conditional distribution
+$H_{\vector{x}}$ is normal.  More precisely
+$$H_{\vector{x}}(x) = \Phi\left(\frac{x - \mu_k(\vector{x})} {\sqrt{\tilde{\rho}_k}}\right)$$
+with
+\begin{align*}
+\mu_k(\vector{x}) &= \transpose{\vector{\rho}}_k \Rho_{(k)}^{-1} \vector{x}\text,\\
+\tilde{\rho}_k &= \rho_k - \transpose{\vector{\rho}}_k \Rho_{(k)}^{-1} \vector{\rho}_k\\
+\end{align*}
+and where we decompose the correlation matrix $\Rho_{(k+1)}$ into following blocks
+$$\Rho &= \left(\begin{matrix}\Rho_{(k)}&\vector{\rho}_k\\ \transpose{\vector{\rho}}_k& \rho_k \end{matrix}\right)\text,$$
+with $\Rho_{(k)}$ the upper left $k\times k$ submatrix of $\Rho_{(k+1)}$ and writing $\Rho_{(d)}=\Rho$.
+
+Hence, using the corollary above, the \(k\)-th conditional copula of the Gaussian copula $C = \Phi_{\vector{0},\Rho}\circ\vector{\Phi^{-1}}$ is
+$$C_{\vector{u}} = H_{\vector{\Phi}^{-1}(\vector{u})}\bigl(\Phi^{-1}(u)\bigr)
+= \Phi\left(\frac{\Phi^{-1}(u) - \mu_k\bigl(\vector{\Phi}^{-1}(\vector{u})\bigr)}{\sqrt{\tilde{\rho}_k}}\right)$$
+and its quantile function is
+$$ C_{\vector{u}}^-(u) = \Phi\Bigl(\mu_k\bigl(\vector{\Phi}^{-1}(\vector{u})\bigr) + \sqrt{\tilde{\rho}_k}\cdot\Phi^{-1}(u)\Bigr)$$
+and the transformation function $\phi_C$ is
+\begin{align*}
+\vector{u} = \phi_C(\vector{v}) &= \explicitVector{\component{v}{1}, C_{\vector{u}_{(1)}}^-(\component{v}{2})} {C_{\vector{u}_{(d-1)}}^-(\component{v}{d})}\\
+ &= \biggl(\component{v}{1}, \Phi\Bigl(\mu_1\bigl(\vector{\Phi}^{-1}(\vector{u}_{(1)})\bigr) + \sqrt{\tilde{\rho}_1}\cdot\Phi^{-1}(u)\Bigr), \ldots\\
+ &\hphantom{ = \biggl(} \ldots,\Phi\Bigl(\mu_{d-1}\bigl(\vector{\Phi}^{-1}(\vector{u}_{(1)})\bigr) + \sqrt{\tilde{\rho}_{d-1}}\cdot\Phi^{-1}(u)\Bigr)\biggr)^{\mathrm{t}}
+\end{align*}
+
+
+For most copula families, the conditional distribution method is not optimal. (See [5].)  In particular for Gaussian copulas, a sampling can be obtained via their stochastic representation, as we shall sketch in the next section.
+
+*** Cholesky Decomposition
+
+The random vector $\vector{X}\sim\Phi_{\vector{0},\Rho}$ admits the stochastic representation $\vector{X} = A\vector{Z}$ where $A$ denotes the lower triangular matrix from the Cholesky decomposition $\Rho = A\transpose{A}$ and $\vector{Z}$ is a vector of $d$ independent standard normal random variables.  A random vector $\vector{U}$ with the gaussian copula $C = \Phi_{\vector{0},\Rho}\circ\vector{\Phi}^{-1}$, where  $\vector{\Phi}^{-1}=\Phi^{-1}\times\ldots\times\Phi^{-1}$, as its distribution function, admits the stochastic representation $\vector{\Phi}(X) = \vector{\Phi}(A\vector{Z}) = \vector{\Phi}\bigl(A\vector{\Phi}^{-1}(\vector{U}')\bigr)$ for the multivariate uniformly distributed random vector $\vector{U}' \sim \mathcal{U}[0,1]^d$.
+
+According to [5], this sampling approach is equivalent to the CDM described before.
+
+
+We have now an expression of our model $\mathcal{M}$ as a function $\mathcal{M}(\vector{U}')$ of a multivariate standard uniformly distributed random vector $\vector{U}' \sim \mathcal{U}[0,1]^d$ and our Monte Carlo estimator of the present value $\mathcal{V}$ of the balance sheet is
+$$\sampleMean{i}{N}{V(\vector{u}_i)} \approx \expect{V(\vector{U}')}$$
+for a (pseudo/quasi) random sample $\set{\vector{u}_1,\ldots,\vector{u}_N}$ from the multivariate standard uniform distribution $\mathcal{U}[0,1]^D$.
+
+*** Multivariate Standard Uniform Distribution
+
+This section is just here for noting that the marginal distributions of a multivariate standard uniform distribution $\mathcal{U}[0,1]^d$ are independent univariate standard uniform distributions on $[0,1]$.  Indeed for $\vector{U}\sim\mathcal{U}[0,1]^d$ and for every measurable subset $A\subseteq[0,1]^d$ we have $$\proba{U\in A} = \int_Adu\text.$$  In particular, for $A=\prod_{i=1}^d[a_i,b_i]$, with $0\leq a_i\leq b_i\leq 1$, we have
+\begin{align*}
+\proba{U\in A} &= \int_Adu = \int_{\prod_{i=1}^d[a_i,b_i]}d\vector{u} = \int_{a_1}^{b_1}d\component{u}{1}\cdot\ldots\cdot\int_{a_d}^{b_d}d\component{u}{d}\\ &= \proba{\component{U}{1}\in[a_1,b_1]}\cdot\ldots \cdot\proba{\component{U}{d}\in[a_d,b_d]}\text.
+\end{align*}
+
+** Monte Carlo and Quasi-Monte Carlo Methods
+
+Quasi-Monte Carlo methods are used for numerical integration by using low-discrepancy sequences.  The problem which the Monte Carlo as well as the quasi-Monte Carlo methods try to solve, is to approximate the integral of a function $f$ on, say, the \(d\)-dimensional unit cube as the average of the function evaluated at a set of points $\vector{u}_1, ..., \vector{u}_N \in [0,1]^d$:
+$$\int_{[0,1]^d}f(u)du\approx\sampleMean{1}{N}{f(\vector{u}_i)}\text.$$
+The difference between the Monte Carlo and the quasi-Monte Carlo methods is choice of the evaluation points $\vector{u}_i$.  The Monte Carlo method uses pseudo-random numbers, whereas the quasi-Monte Carlo method uses low-discrepancy sequences.  The Koksma-Hlawka inequality gives us an upper bound for the approximation error by the product of two independent factors.  One of these factors depends only on the variation of the function $f$ and the other factor depends only on a property (the star discrepancy) of the set of evaluation points $\vector{u}_1, ..., \vector{u}_N$.  The discrepancy measures the deviation of the empirical distribution of those points and the Lebesgue measure $\mu$.
 
 **** Definition Discrepancy
 #+BEGIN_QUOTE
-The /discrepancy/ $D_N(P)$ of a set $P=\{x_1, ..., x_N\}\subset\prod_{i=1}^D[0,1) \subset\Bbb R^D$ is
+The /discrepancy/ $D_N(P)$ of a set $P=\{\vector{u}_1, ..., \vector{u}_N\}\subset\prod_{i=1}^d[0,1) \subset\Bbb R^d$ is
 $$D_N(P) = \sup_{B \in J}\left|\frac{\sharp(B\cap P)}N - \mu(B)\right|\text,$$
-where $\mu$ is the \(D\)-dimensional Lebesgue mesure,  and $J$ is the set of  \(D\)-dimensional intervals $\prod_{i=1}^D[a_i,b_i)$ with $a_i, b_i\in[0,1)$ and $a < b$.
+where $\mu$ is the \(d\)-dimensional Lebesgue mesure,  and $J$ is the set of  \(d\)-dimensional intervals $\prod_{i=1}^d[a_i,b_i)$ with $0\leq a_i\leq b_i < 1$.
 #+END_QUOTE
 
 A slightly simpler characterization of discrepancy is the star discrepancy.
 
 **** Definition Star Discrepancy
 #+BEGIN_QUOTE
-The /star discrepancy/ $D_N^*(P)$ of a set $P=\{x_1, ..., x_N\}\subset\prod_{i=1}^D[0,1) \subset\Bbb R^D$ is
+The /star discrepancy/ $D_N^*(P)$ of a set $P=\{\vector{u}_1, ..., \vector{u}_N\}\subset\prod_{i=1}^d[0,1) \subset\Bbb R^d$ is
 $$D_N^*(P) = \sup_{B \in J^*}\left|\frac{\sharp(B\cap P)}N - \mu(B)\right|\text,$$
-where $\mu$ is the \(D\)-dimensional Lebesgue mesure,  and $J^*$ is the set of  \(D\)-dimensional intervals $\prod_{i=1}^D[0,u_i)$ with $u_i\in[0,1)$.
+where $\mu$ is the \(d\)-dimensional Lebesgue mesure,  and $J^*$ is the set of  \(d\)-dimensional intervals $\prod_{i=1}^d[0,u_i)$ with $u_i\in[0,1)$.
 #+END_QUOTE
 
 The two are related by
-$$D_N^* \leq D_N \leq 2^DD_N^*\text.$$
+$$D_N^* \leq D_N \leq 2^dD_N^*\text.$$
 
-In order to be able to quantify the convergence of the quasi-Monte Carlo method  for integration,  the integrand function $f$ needs to satisfie some bounded variation condition.
+In order to be able to quantify the convergence of the quasi-Monte Carlo method  for integration,  the integrand function $f$ needs to satisfy some bounded variation condition.
 
 **** Lower Bounds
- It is conjuctured that the lower bound of the star discrepancy for each finite set $\set{x_1, ...,x_N}\subset[0,1]^D$ is $C_D\frac{\log(N)^{D-1}}{N}$ for some constant $C_D>0$ depending only on the dimension $D$.
+ It is conjuctured that the lower bound of the star discrepancy for each finite set $\set{\vector{u}_1, ...,\vector{u}_N}\subset[0,1]^d$ is $C_d\frac{\log(N)^{d-1}}{N}$ for some constant $C_D>0$ depending only on the dimension $d$.
+ 
+**** Estimation of the Discrepancy
+Directly computing the discrepancy of a sequence of numbers is exponentially difficult with growing dimension.  The /Erdős-Turán-Koksma/ inequality provides an upper bound for the star discrepancy:  For points $\vector{u}_1, ..., \vector{u}_N$ in $[0,1]^d$ and some arbitrary positive integer $H$, we have
+\begin{align*}
+D_N^*(\vector{u}_1, ..., \vector{u}_N)
+\leq \left(\frac{3}{2}\right)^d
+\biggl(\frac{2}{H+1}
+ +\hspace{-1em}\sum_{\vector{h}\in\Bbb{Z}^d \atop :0 < \infiniteNorm{\vector{h}}\leq H}
+ \frac1{\prod_{i=1}^d\max\set{1,\abs{\component{h}{i}}}}
+     \abs{ \sampleMean{n}{N}{e^{2\pi i\scalarProd{\vector{h}}{\vector{u}_n}}}}\biggr)\text.
+\end{align*}
 
- TODO Other lower bounds.
-
+ 
 *** The Koksma-Hlawka Inequality
 #+BEGIN_QUOTE
-If $f$ is a function which has /bounded variation/ $\HKVar(f)$ on the \(D\)-dimensional unit cube $[0,1]^D$ in the sense of /Hardy and Krause/, then for any set of points $x_1, ..., x_N$ in $[0,1)^D$, we have
-$$\abs{\frac{1}{N}\sum_{i=1}^Nf(x_i) - \int_{[0,1)^D}f(u)du} \leq \HKVar(f)D_N^*(x_1,...,x_N)\text.$$
+If $f$ is a function which has /bounded variation/ $\HKVar(f)$ on the \(d\)-dimensional unit cube $[0,1]^d$ in the sense of /Hardy and Krause/, then for any set of points $\vector{u}_1, ..., \vector{u}_N$ in $[0,1)^d$, we have
+$$\abs{\frac{1}{N}\sum_{i=1}^Nf(\vector{u}_i) - \int_{[0,1)^d}f(\vector{u})\,du} \leq \HKVar(f)D_N^*(\vector{u}_1,...,\vector{u}_N)\text.$$
 #+END_QUOTE
 
-Let $a,b\in[0,1]^D$ for which the coefficients satisfie $\coeff{a}{i} < \coeff{b}{i}$ for all $i=1, ...,D$. We write in this case $a < b$ and the hyper-rectangle $[a,b]:=\prod_{i=1}^D[\coeff{a}{i},\coeff{b}{i}]$. This hyper rectangle has $2^D$ corners which are exactly those points $x$ whose coefficients are either coefficients of $a$ or coefficients of $b$. For a corner $x$ of $[a,b]$, we denote by $\sharp_a^x$ the number of coefficients of $x$ which are coefficients of $a$.
+Let $\vector{a},\vector{b}\in[0,1]^d$ for which the coefficients satisfy $\component{a}{i} < \component{b}{i}$ for all $i=1, ...,d$. We write in this case $$\vector{a} < \vector{b}$$ and the hyper-rectangle $$[\vector{a},\vector{b}] := \prod_{i=1}^d[\component{a}{i},\component{b}{i}]\text.$$
+This hyper rectangle has $2^d$ corners which are exactly those points $\vector{u}$ whose coefficients are either coefficients of $\vector{a}$ or coefficients of $\vector{b}$. For a corner $\vector{u}$ of $[\vector{}a,\vector{b}]$, we denote by $\sharp_{\vector{a}}^{\vector{u}}$ the number of coefficients of $\vector{u}$ which are coefficients of $\vector{a}$.
 
-Consider now a function $f$ defined on the \(D\)-dimensional unit cube $[0,1]^D$. 
+Consider now a function $f$ defined on the \(d\)-dimensional unit cube $[0,1]^d$. 
 
-The \(D\)-fold alternate sum of $f$ over the hyper rectangle $[a,b]$  is
-$$\Delta(f;a,b) = \sum_{x\in\mathrm{Corners\ of }[a,b]}(-1)^{\sharp_a^x}f(x)$$
+The \(d\)-fold alternate sum of $f$ over the hyper rectangle $[\vector{a},\vector{b}]$  is
+$$\Delta(f;\vector{a},\vector{b}) = \sum_{\vector{u}\in\mathrm{Corners\ of }[\vector{a},\vector{b}]}(-1)^{\sharp_{\vector{a}}^{\vector{u}}}f(\vector{u})$$
 
-For each dimension $i$, we consider a sequence $0 = \coeff{c_0}{i} <...< \coeff{c_{k_i}}{i} = 1$.  The cartesian product $\mathcal{C} = \prod_{i=1}^D\set{\coeff{c_0}{i}, ..., \coeff{c_{k_i}}{i}} \subset [0,1]^D$ consists of the corners of a pavement of $[0,1]^D$ by hyper rectangles $[c,c']$ with $c,c'\in\mathcal{C}$ and $c < c'$.
+For each dimension $i$, we consider a sequence $0 = \component{c_0}{i} <...< \component{c_{k_i}}{i} = 1$.  The cartesian product $\mathcal{C} = \prod_{i=1}^d\set{\component{c_0}{i}, ..., \component{c_{k_i}}{i}} \subset [0,1]^d$ consists of the corners of a pavement of $[0,1]^d$ by hyper rectangles $[\vector{c},\vector{c}']$ with $\vector{c},\vector{c}'\in\mathcal{C}$ and $\vector{c} < \vector{c}'$.
 
 The variation of $f$ over $\mathcal{C}$ is
-$$V_{\mathcal{C}}(f)=\sum_{c,c'\in\mathcal{C}:\atop c < c'}\abs{\Delta(f;c,c')}\text.$$
+$$V_{\mathcal{C}}(f)=\sum_{\vector{c},\vector{c}'\in\mathcal{C}:\atop \vector{c} < \vector{c}'}\abs{\Delta(f;\vector{c},\vector{c}')}\text.$$
 
 *** Definition Bounded Variation in the sense of Vitali-Lebesgue-Fréchet-de la Vallée Poussin
 #+BEGIN_QUOTE
 The /variation of $f$ in the sense of Vitali/ is
-$$V_{D}(f) = \sup_{\mathcal{C}}V_{\mathcal{C}}(f)\text.$$
+$$V_{d}(f) = \sup_{\mathcal{C}}V_{\mathcal{C}}(f)\text.$$
 #+END_QUOTE
 
-For a subset $I\subseteq\set{1, ..., D}$ we write
-$$\left.[0,1]^D\right|_I = \set{(\coeff{x}{1}, ..., \coeff{x}{D})\in [0,1]^D\mid x_i = 1 \text{ if } i\notin{I}}$$ a \(\abs{I}\)-dimensional "face" or "edge" containing the corner $\parens{1, ..., 1}$ opposite to the corner $0$. Let $\iota_I$ be the "canonical" injection  $\iota_I:[0,1]^{\abs{I}}\hookrightarrow\left.[0,1]^D\right|_I$.  Write $f_I = f \circ\iota_I$.
+For a subset $I\subseteq\set{1, ..., d}$ we write
+$$\left.[0,1]^d\right|_I = \set{\explicitComponentVector{u}{d}\in [0,1]^d\mid \component{u}{i} = 1 \text{ if } i\notin{I}}$$ a \(\abs{I}\)-dimensional "face" or "edge" containing the corner $\vector{1} := \explicitVector{1}{1}$ opposite to the corner $\vector{0}$. Let $\iota_I$ be the "canonical" injection  $\iota_I:[0,1]^{\abs{I}}\hookrightarrow\left.[0,1]^d\right|_I$.  Write $f_I = f \circ\iota_I$.
 
 *** Definition Bounded Variation in the sense of Hardy and Krause
 #+BEGIN_QUOTE
 The variation of $f$ in the sense of Hardy and Krause is
-$$\HKVar{f} = \sup_{I\subseteq\set{1, ..., D}} V_{\abs{I}}(f_I)\text.$$
+$$\HKVar{f} = \sup_{I\subseteq\set{1, ..., d}} V_{\abs{I}}(f_I)\text.$$
 #+END_QUOTE
-
-** Valuation of Instruments using an Economic Scenario Model
-
-We are now interested to quantify the convergence of the valuation by quasi-Monte Carlo of financial instruments using an economic scenario model.  Let $\mathcal{M}$ a risk neutral economic scenario model and $\tilde\mathcal{M}=\tilde\mathcal{M}(\tilde{X_1}, ...,\tilde{X_D})$ its sampled scenarios via a set of $D$ independently standard normally distributed samples $\tilde{X_1}, ...,\tilde{X_D}$ of length $N$. 
-
-A standard normal random variable $X_i$ can be seen as the transformation of a standard uniform random variable $U_i$ by the inverse $\Phi^{-1}$ of the cumulative standard normal distribution function, i.e. $X_i = \Phi^{-1}(U_i)$.  For independent standard normal random variables $X_1, ..., X_D$, the cartesian product $X = \parens{X_1, ..., X_D}$ is multivariate standard normally distributed and $X = \Phi^{-1}\times ...\times\Phi^{-1}\parens{U_1, ..., U_D} = \Phi^{-1}\times ...\times\Phi^{-1}(U)$, with $U = \parens{U_1, ..., U_D}$ multivariate standard uniformly distributed.
-
-For a sample $\tilde{U} = \parens{\tilde{U}_1, ..., \tilde{U}_D}$ of length $N$, we write $u_i = \parens{\coeff{u_i}{1}, ..., \coeff{u_i}{D}}$ the \(i\)th trial of $\tilde{U}$. 
-Let $V_{\mathcal{M}}(U)$ be the random variable representing the value of a portfolio in the model $\mathcal{M}$ and $V_{\tilde{\mathcal{M}}}(u_i)$ the value of that portfolio for the \(i\)th trial $u_i$. The model $\mathcal{M}$ being risk neutral, the theoretical value of the portfolio is $\expect[{V_{\mathcal{M}}}]$.  We want to approximate this value by $\sampleMean{i}{N}{V_{\tilde{\mathcal{M}}}(u_i)}$.
 
 *** Applying the Koksma-Hlawka Inequality
 
-Now comes the hairy part: If the function $V_{\tilde{\mathcal{M}}}$ is bounded in the sense of Hardy and Krause, then, given a sample $\tilde{U}=\set{u_1, ..., u_N}$ of the \(D\)-multivariate standard uniformly distributed random variable $U$, we have
-$$\abs{\sampleMean{i}{N}{V_{\tilde{\mathcal{M}}}(u_i)} - \expect[{V_{\mathcal{M}}}]} \leq \HKVar\parens{V_{\tilde{\mathcal{M}}}}\cdot D_N^*(u_1, ..., u_N)\text.$$
-
-***** Question
-- Is $V_{\tilde{\mathcal{M}}}$ bounded in the sense of Hardy and Krause?
-
-***** Question
-- If $u\mapsto V_{\tilde{\mathcal{M}}}(u) = f(\Phi^{-1}\times ...\times\Phi^{-1}(u)) = f\circ\Phi^{-1}\times ...\times\Phi^{-1} (u)$ is bounded in the sense of Hardy and Krause, is it also the case for $u\mapsto f(\sqrt\Lambda Q\cdot\Phi^{-1}\times ...\times\Phi^{-1}(u)) = f\circ \sqrt\Lambda Q  \circ \Phi^{-1}\times ...\times\Phi^{-1}(u)$ for some orthogonal matrix $Q$ and $\Lambda$ positive diagonal with trace $D$?
-
+If the valuation function $V$ of the present value $\mathcal{V}$ is bounded in the sense of Hardy and Krause, then, given a sample $\set{u_1, ..., u_N}$ of the \(d\)-multivariate standard uniformly distributed random variable $U$, we have
+$$\abs{\sampleMean{i}{N}{V(\vector{u}_i)} - \expect{V(\vector{U})}} \leq \HKVar(V)\cdot D_N^*(\vector{u}_1, ..., \vector{u}_N)\text.$$
 
 ** Sobol' Numbers
 
 In order to improve the approximation result in Monte Carlo simulations, an idea is to use quasi-random numbers which generate low discrepancy sequences.  There are several methods for generating low discrepancy sequences. One of them are the Sobol' Numbers.
 
-It can be shown that the star discrepancy of a \(D\)-dimensional Sobol' number sequence $S=\set{s_1, ..., s_N}$ is bounded by
-$C\frac{\log(N)^D}{N}$ for some constant $C>0$.  The conjectured lower bound for the star would mean that those sequences are in some sense optimal.  Notice however, that for large dimension $D$ this upper bound begins its asymptotical behavior only for $N > e^D$ which is a large number.  Therefore there is no guarantee that in large dimension the convergence with Sobol' is better than with random number
+It can be shown that the star discrepancy of a \(d\)-dimensional Sobol' number sequence $S=\set{s_1, ..., s_N}$ is bounded by
+$C\frac{\log(N)^d}{N}$ for some constant $C>0$.  The conjectured lower bound for the star would mean that those sequences are in some sense optimal.  Notice however, that this upper bound begins its asymptotical behavior only for $N > e^d$ which is a large number if $d$ itself is large.  Therefore there is apriori no guarantee that in large dimension the convergence with Sobol' is better than with random number.
 
 *** Generation of Sobol' Numbers
 
-...
+For generating Sobol' number sequences, see for instance [8]. The R library =SobolSequence= implements the algorithm by S. Joe and F. Y. Kuo (see https://cran.r-project.org/web/packages/SobolSequence/vignettes/sobolsequence.html and   https://web.maths.unsw.edu.au/~fkuo/sobol/) and also allows for generating randomized point by digital shift.
 
 *** Correlation of the Coordinate Samples
 
-A problem with the Sobol' sequence $S=\set{s_1, ..., s_N}$ is that when we consider the samples of the coefficients $\parens{\coeff{S}{1}, ..., \coeff{S}{D'}} = \parens{\parens{\coeff{s_1}{1}, ..., \coeff{s_N}{1}}, ..., \parens{\coeff{s_1}{D'}, ..., \coeff{s_N}{D'}}}$, those $\coeff{S}{i}$ are not independent.
-
-One suggestion would be to transform them to $\Xi = \parens{\coeff{\Xi}{1}, ..., \coeff{\Xi}{D'}} = \parens{\Phi^{-1}(\coeff{S}{1}), ..., \Phi^{-1}(\coeff{S}{D'})}$, compute their correlation matrix $\Gamma$, which we diagonalize orthogonally as $\Gamma = O^T\tilde{\Lambda}O=O^T\sqrt\Lambda \Bbb1_D\sqrt\Lambda O$ with $O = \parens{o_{i,j}}_{i,j}$ orthogonal, $\tilde\Lambda = \diag{\tilde{\lambda}_i}{i}{D'}$ being diagonal containing the eigenvalues in decreasing order.  Reducing the dimension $D'$ to the $D$ positive eigenvalues $\tilde{\lambda}_i$, the product
-$$X = \diag{\sqrt{\tilde{\lambda}_i}}{i}{D}\cdot\parens{o_{i,j}}_{i=1,j=1}^{D,D'}\cdot\Xi$$
-is standard normal multivariate.
+A problem with the Sobol' sequence $S=\set{\vector{s}_1, ..., \vector{s}_N}\subset[0,1]^d$ is that when we consider the samples of the coefficients $\parens{\component{S}{1}, ..., \component{S}{d}} = \parens{\parens{\component{s_1}{1}, ..., \component{s_N}{1}}, ..., \parens{\component{s_1}{d}, ..., \component{s_N}{d}}}$, those $\component{S}{i}$ are not independent for high dimensionality ($d \gg 90)$. This means that the results explained in previous sections are not applicable.  In particular,  $\vector\Phi^{-1}(S)$ is not a sample of a multivariate normal distribution which implies as consequence that for some $d\times d$ matrix $A$, the vectors $A\vector\Phi^{-1}(S)$ are also not a sample of a multivariate normal distribution.  In fact, even the marginals $\component{A\vector\Phi^{-1}(S)}{i}$ are not samples of normal distributions.
 
 
 
@@ -154,21 +235,25 @@ is standard normal multivariate.
 
 
 
-
-
-** Discrepancy
-
-Directly computing the discrepancy of a sequence of numbers is exponentially difficult with growing dimension.  The /Erdős-Turán-Koksma/ inequality provides an upper bound for the star discrepancy:  For points $x_1, ..., x_N$ in $[0,1]^D$ and some arbitrary positive integer $H$, we have
-$$ D_N^*(x_1, ..., x_N) \leq \left(\frac{3}{2}\right)^D \parens{\frac{2}{H+1}+\sum_{h=\parens{h_1, ..., h_D}\in\Bbb{Z}^D \atop :0<\infiniteNorm{h}\leq{}H} {\frac1{\prod_{i=1}^D\max\set{1,h_i}} \cdot \abs{\frac1N\sum_{n=1}^Ne^{2\pi i\scalarProd{h}{x_n}}}}}\text.$$
 
 * References
 
-[1] James A. Clarkson, Raymond Adams, /On Definitions of Bounded Variation for Functions of Two Variables/, American Mathematical Society, 1932, https://www.ams.org/journals/tran/1933-035-04/S0002-9947-1933-1501718-2/S0002-9947-1933-1501718-2.pdf
+<<<[1]>>> James A. Clarkson, Raymond Adams, /On Definitions of Bounded Variation for Functions of Two Variables/, American Mathematical Society, 1932, https://www.ams.org/journals/tran/1933-035-04/S0002-9947-1933-1501718-2/S0002-9947-1933-1501718-2.pdf
 
-[2] /Low-discrepancy sequence/, Wikipedia, https://en.wikipedia.org/wiki/Low-discrepancy_sequence
+<<<[2]>>> /Low-discrepancy sequence/, Wikipedia, https://en.wikipedia.org/wiki/Low-discrepancy_sequence
 
-[3]  Christoph Aistleitner, Florian Pausinger, Anne Marie Svane, Robert F. Tichy, /On functions of bounded variation/, Mathematical Proceedings of the Cambridge Philosophical Society -1(3), June13 2016, https://arxiv.org/pdf/1510.04522
+<<<[3]>>>  Christoph Aistleitner, Florian Pausinger, Anne Marie Svane, Robert F. Tichy, /On functions of bounded variation/, Mathematical Proceedings of the Cambridge Philosophical Society -1(3), June13 2016, https://arxiv.org/pdf/1510.04522
 
-[4] Art B. Owen, /Multidimensional variation for quasi-Monte Carlo/, Contemporary multivariate
+<<<[4]>>> Art B. Owen, /Multidimensional variation for quasi-Monte Carlo/, Contemporary multivariate
 analysis and design of experiments, 49-74, Ser. Biostat. 2, World Sci. Publ., Hackensack,
 NJ, 2005, https://artowen.su.domains/reports/ktfang.pdf
+
+<<<[5]>>> Mathieu Cambou, Marius Hofert, Christiane Lemieux, /Quasi-random numbers for copula models/, 2015, https://arxiv.org/pdf/1508.03483
+
+<<<[6]>>> Sumin Wang, Chenxian Huang, Yongdao Zhou, Min-Qian Liu, /An Efficient Quasi-Random Sampling for Copulas/, March 11 2024, https://arxiv.org/pdf/2403.05281 
+
+<<<[7]>>> K'ai-T'ai Fang, Samuel Kotz, Kai Wang Ng, /Symmetric Multivariate and Related
+ Distributions,/ 1990, Chapman & Hall/CRC
+
+ <<<[8]>>> /Sobol sequence/, Wikipedia,
+ https://en.wikipedia.org/wiki/Sobol_sequence
