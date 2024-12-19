@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2024-12-17 Di 18:06 -->
+<!-- 2024-12-18 Mi 14:28 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>&lrm;</title>
@@ -231,33 +231,34 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="#orgb2a365c">1. Sobol' Numbers in Financial Monte-Carlo Simulations</a>
+<li><a href="#org864f95a">1. Sobol' Numbers in Financial Monte-Carlo Simulations</a>
 <ul>
-<li><a href="#org700d129">1.1. Valuation of Instruments using an Economic Scenario Model</a></li>
-<li><a href="#org3fcf67c">1.2. Conditional Distribution Method</a>
+<li><a href="#org9d08af0">1.1. Valuation of Instruments using an Economic Scenario Model</a></li>
+<li><a href="#org2f36c06">1.2. Dependence Structure</a>
 <ul>
-<li><a href="#orge04e453">1.2.1. Normal Distribution and Gaussian Copula</a></li>
-<li><a href="#org33f108e">1.2.2. Cholesky Decomposition</a></li>
-<li><a href="#org8382f6a">1.2.3. Multivariate Standard Uniform Distribution</a></li>
+<li><a href="#org157412c">1.2.1. Conditional Distribution Method</a></li>
+<li><a href="#orgea961b1">1.2.2. Normal Distribution and Gaussian Copula</a></li>
+<li><a href="#org61750c8">1.2.3. Cholesky Decomposition</a></li>
+<li><a href="#orgeb298d2">1.2.4. Multivariate Standard Uniform Distribution</a></li>
 </ul>
 </li>
-<li><a href="#org0512834">1.3. Monte Carlo and Quasi-Monte Carlo Methods</a>
+<li><a href="#org3179e9f">1.3. Monte Carlo and Quasi-Monte Carlo Methods</a>
 <ul>
-<li><a href="#org750cdd5">1.3.1. The Koksma-Hlawka Inequality</a></li>
-<li><a href="#org1f0de8d">1.3.2. Definition Bounded Variation in the sense of Vitali-Lebesgue-Fréchet-de la Vallée Poussin</a></li>
-<li><a href="#org6f7c7df">1.3.3. Definition Bounded Variation in the sense of Hardy and Krause</a></li>
-<li><a href="#orga409294">1.3.4. Applying the Koksma-Hlawka Inequality</a></li>
+<li><a href="#org9e78510">1.3.1. The Koksma-Hlawka Inequality</a></li>
+<li><a href="#org086d5b7">1.3.2. Definition Bounded Variation in the sense of Vitali-Lebesgue-Fréchet-de la Vallée Poussin</a></li>
+<li><a href="#orgc6a9aad">1.3.3. Definition Bounded Variation in the sense of Hardy and Krause</a></li>
+<li><a href="#orgd485258">1.3.4. Applying the Koksma-Hlawka Inequality</a></li>
 </ul>
 </li>
-<li><a href="#orgd54f877">1.4. Sobol' Numbers</a>
+<li><a href="#org6977760">1.4. Sobol' Numbers</a>
 <ul>
-<li><a href="#org0cd2d39">1.4.1. Generation of Sobol' Numbers</a></li>
-<li><a href="#orgf593a62">1.4.2. Correlation of the Coordinate Samples</a></li>
+<li><a href="#org6c2a382">1.4.1. Generation of Sobol' Numbers</a></li>
+<li><a href="#org7dcb18b">1.4.2. Correlation of the Coordinate Samples</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#org5febbc1">2. References</a></li>
+<li><a href="#orgac6094f">2. References</a></li>
 </ul>
 </div>
 </div>
@@ -286,16 +287,16 @@
 
 
 
-<div id="outline-container-orgb2a365c" class="outline-2">
-<h2 id="orgb2a365c"><span class="section-number-2">1.</span> Sobol' Numbers in Financial Monte-Carlo Simulations</h2>
+<div id="outline-container-org864f95a" class="outline-2">
+<h2 id="org864f95a"><span class="section-number-2">1.</span> Sobol' Numbers in Financial Monte-Carlo Simulations</h2>
 <div class="outline-text-2" id="text-1">
 <p>
 In this note, we discuss the possible use of Sobol' numbers in the generation process of economic scenarios for valuing balance sheets of complex financial instruments.
 </p>
 </div>
 
-<div id="outline-container-org700d129" class="outline-3">
-<h3 id="org700d129"><span class="section-number-3">1.1.</span> Valuation of Instruments using an Economic Scenario Model</h3>
+<div id="outline-container-org9d08af0" class="outline-3">
+<h3 id="org9d08af0"><span class="section-number-3">1.1.</span> Valuation of Instruments using an Economic Scenario Model</h3>
 <div class="outline-text-3" id="text-1-1">
 <p>
 We consider a risk free economic scenario model \(\mathcal{M}\) consisting of a set \(\mathcal{M} = \set{\varphi_{1,t_1}, \ldots, \varphi_{1,t_L}, \ldots, \varphi_{K,t_1}, \ldots, \varphi_{K,t_L}}\) of  \(K\times L\) random variables simulating the values of a price factor \(\varphi_k(t_l)\)  at time horizon \(t_l\).  These random variables may have functional dependences between each other, however, at the end, the whole set of scenarios is driven by a random vector \(\vector{X}=\explicitComponentVector{X}{D}:\Omega\to\R^D\) of dimension \(D\) whith multivariate distribution function \(H\) on a probability space \((\Omega,\mathcal{F},\Bbb{P})\) and whose components \(\component{X}{d} \sim F_d\) are random variables with some marginal distribution \(F_d(x) = \proba{\component{X}{d}\leq x}\).
@@ -306,31 +307,39 @@ The random value of a balance sheet of financial instruments in this model is a 
 </p>
 
 <p>
+An important part of the model is the dependence structure of the random vector \(\vector{X}\) which we shall investigate in the next section.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org2f36c06" class="outline-3">
+<h3 id="org2f36c06"><span class="section-number-3">1.2.</span> Dependence Structure</h3>
+<div class="outline-text-3" id="text-1-2">
+<p>
 By Sklar's theorem, there exists a unique copula \(C_H:[0,1]^D\to[0,1]\), with  \[\vector{H}(\vector{x}) = \explicitVector{F_1(\component{x}{1})}{F_D(\component{x}{D})}\text.\]
 This means that the dependence structure of \(\vector{X}\) is expressed by the copula function which allows us to write the present value \(\mathcal{V}\) as
 \[V = \expect{V(\vector{U})} = \expect{V_0(\vector{X})}\text,\]
 where \(\vector{U}=\explicitComponentVector{U}{D}:\Omega\to\R^D\) is a random vector with distribution function \(C_H\) and the function \(V\) is defined as
-\[V=V_0\circ{}F_1^-\times\ldots\times{}F_D^-\]
+\[V=V_0\circ\parens{F_1^-\times\ldots\times{}F_D^-}\]
 with, for \(1\leq d\leq D\), the marginal quantile functions
 \[F_d^-(p) = \inf\set{x\in\R\mid F_d(x)\geq p}\text.\]
 </p>
 
 <p>
 Hence, if \(C_H\) and the margins \(F_d\), \(1\leq d\leq D\), are known, we can use Monte Carlo simulation to estimate \(\mathcal{V} = \expect{V(\vector{U})}\).  For a random sample \(\set{\vector{u}_1,...,\vector{u}_N}\) from \(C_H\), the Monte Carlo estimator of \(\mathcal{V}\) is
-\[\sampleMean{i}{N}{V(\vector{u}_i)} \simeq \expect{V(\vector{U})}\text.\]
+\[\sampleMean{i}{N}{V(\vector{u}_i)} \approx \expect{V(\vector{U})}\text.\]
 </p>
 
 <p>
 The remaining problem is to find a way to sample \(\vector{U}\sim C_H\).
 </p>
 </div>
-</div>
 
-<div id="outline-container-org3fcf67c" class="outline-3">
-<h3 id="org3fcf67c"><span class="section-number-3">1.2.</span> Conditional Distribution Method</h3>
-<div class="outline-text-3" id="text-1-2">
+<div id="outline-container-org157412c" class="outline-4">
+<h4 id="org157412c"><span class="section-number-4">1.2.1.</span> Conditional Distribution Method</h4>
+<div class="outline-text-4" id="text-1-2-1">
 <p>
-A method for creating samples of \(\vector{U}\sim C_H\) is for instance described in <a href="#org3b31600">[5]</a>, and is called <i>conditional distribution method (CDM)</i>.  The idea is, given a copula \(C\), to find a transformation function \(\phi_C:[0,1]^d\to[0,1]^d\) which transforms a uniformly distributed random vector \(\vector{U}' \sim \mathrm{U}[0,1,]^d\) into a random vector \(\vector{U} := \phi_C(\vector{U}') \sim C\).
+A method for creating samples of \(\vector{U}\sim C_H\) is for instance described in <a href="#orgd390c68">[5]</a>, and is called <i>conditional distribution method (CDM)</i>.  The idea is, given a copula \(C\), to find a transformation function \(\phi_C:[0,1]^d\to[0,1]^d\) which transforms a uniformly distributed random vector \(\vector{U}' \sim \mathrm{U}[0,1,]^d\) into a random vector \(\vector{U} := \phi_C(\vector{U}') \sim C\).
 </p>
 
 <p>
@@ -377,16 +386,17 @@ is the quantile function of \(F_i\).
 The economic models \(\mathcal{M}(\vector{X})\) we mostly use, depend on a \(D\)-dimensional multivariate normally distributed random vector \(\vector{X}\).  in the next section we shall investigate this case.
 </p>
 </div>
+</div>
 
-<div id="outline-container-orge04e453" class="outline-4">
-<h4 id="orge04e453"><span class="section-number-4">1.2.1.</span> Normal Distribution and Gaussian Copula</h4>
-<div class="outline-text-4" id="text-1-2-1">
+<div id="outline-container-orgea961b1" class="outline-4">
+<h4 id="orgea961b1"><span class="section-number-4">1.2.2.</span> Normal Distribution and Gaussian Copula</h4>
+<div class="outline-text-4" id="text-1-2-2">
 <p>
 We consider \(H = \Phi_{\vector{\mu},\Rho}\) the \(d\)-dimensional multivariate normal distribution function for which we suppose, without loss of generality, that the location vector \(\vector{\mu} = \vector{0}\) and the scale matrix \(\Rho\) is a correlation matrix of maximal rank, hence positive definite.
 </p>
 
 <p>
-It can be shown (see <a href="#org4955108">[7]</a>), that for \(1 \leq k \leq d-1\) and a \(k\)-dimensional vector \(\vector{x}\) the conditional distribution
+It can be shown (see <a href="#org5bc957d">[7]</a>), that for \(1 \leq k \leq d-1\) and a \(k\)-dimensional vector \(\vector{x}\) the conditional distribution
 \(H_{\vector{x}}\) is normal.  More precisely
 \[H_{\vector{x}}(x) = \Phi\left(\frac{x - \mu_k(\vector{x})} {\sqrt{\tilde{\rho}_k}}\right)\]
 with
@@ -397,7 +407,7 @@ with
 \end{align*}
 <p>
 and where we decompose the correlation matrix \(\Rho_{(k+1)}\) into following blocks
-\[\Rho &= \left(\begin{matrix}\Rho_{(k)}&\vector{\rho}_k\\ \transpose{\vector{\rho}}_k& \rho_k \end{matrix}\right)\text,\]
+\[\Rho = \left(\begin{matrix}\Rho_{(k)}&\vector{\rho}_k\\ \transpose{\vector{\rho}}_k& \rho_k \end{matrix}\right)\text,\]
 with \(\Rho_{(k)}\) the upper left \(k\times k\) submatrix of \(\Rho_{(k+1)}\) and writing \(\Rho_{(d)}=\Rho\).
 </p>
 
@@ -417,20 +427,20 @@ and the transformation function \(\phi_C\) is
 
 
 <p>
-For most copula families, the conditional distribution method is not optimal. (See <a href="#org3b31600">[5]</a>.)  In particular for Gaussian copulas, a sampling can be obtained via their stochastic representation, as we shall sketch in the next section.
+For most copula families, the conditional distribution method is not optimal. (See <a href="#orgd390c68">[5]</a>.)  In particular for Gaussian copulas, a sampling can be obtained via their stochastic representation, as we shall sketch in the next section.
 </p>
 </div>
 </div>
 
-<div id="outline-container-org33f108e" class="outline-4">
-<h4 id="org33f108e"><span class="section-number-4">1.2.2.</span> Cholesky Decomposition</h4>
-<div class="outline-text-4" id="text-1-2-2">
+<div id="outline-container-org61750c8" class="outline-4">
+<h4 id="org61750c8"><span class="section-number-4">1.2.3.</span> Cholesky Decomposition</h4>
+<div class="outline-text-4" id="text-1-2-3">
 <p>
 The random vector \(\vector{X}\sim\Phi_{\vector{0},\Rho}\) admits the stochastic representation \(\vector{X} = A\vector{Z}\) where \(A\) denotes the lower triangular matrix from the Cholesky decomposition \(\Rho = A\transpose{A}\) and \(\vector{Z}\) is a vector of \(d\) independent standard normal random variables.  A random vector \(\vector{U}\) with the gaussian copula \(C = \Phi_{\vector{0},\Rho}\circ\vector{\Phi}^{-1}\), where  \(\vector{\Phi}^{-1}=\Phi^{-1}\times\ldots\times\Phi^{-1}\), as its distribution function, admits the stochastic representation \(\vector{\Phi}(X) = \vector{\Phi}(A\vector{Z}) = \vector{\Phi}\bigl(A\vector{\Phi}^{-1}(\vector{U}')\bigr)\) for the multivariate uniformly distributed random vector \(\vector{U}' \sim \mathcal{U}[0,1]^d\).
 </p>
 
 <p>
-According to <a href="#org3b31600">[5]</a>, this sampling approach is equivalent to the CDM described before.
+According to <a href="#orgd390c68">[5]</a>, this sampling approach is equivalent to the CDM described before.
 </p>
 
 
@@ -442,9 +452,9 @@ for a (pseudo/quasi) random sample \(\set{\vector{u}_1,\ldots,\vector{u}_N}\) fr
 </div>
 </div>
 
-<div id="outline-container-org8382f6a" class="outline-4">
-<h4 id="org8382f6a"><span class="section-number-4">1.2.3.</span> Multivariate Standard Uniform Distribution</h4>
-<div class="outline-text-4" id="text-1-2-3">
+<div id="outline-container-orgeb298d2" class="outline-4">
+<h4 id="orgeb298d2"><span class="section-number-4">1.2.4.</span> Multivariate Standard Uniform Distribution</h4>
+<div class="outline-text-4" id="text-1-2-4">
 <p>
 This section is just here for noting that the marginal distributions of a multivariate standard uniform distribution \(\mathcal{U}[0,1]^d\) are independent univariate standard uniform distributions on \([0,1]\).  Indeed for \(\vector{U}\sim\mathcal{U}[0,1]^d\) and for every measurable subset \(A\subseteq[0,1]^d\) we have \[\proba{U\in A} = \int_Adu\text.\]  In particular, for \(A=\prod_{i=1}^d[a_i,b_i]\), with \(0\leq a_i\leq b_i\leq 1\), we have
 </p>
@@ -455,8 +465,8 @@ This section is just here for noting that the marginal distributions of a multiv
 </div>
 </div>
 
-<div id="outline-container-org0512834" class="outline-3">
-<h3 id="org0512834"><span class="section-number-3">1.3.</span> Monte Carlo and Quasi-Monte Carlo Methods</h3>
+<div id="outline-container-org3179e9f" class="outline-3">
+<h3 id="org3179e9f"><span class="section-number-3">1.3.</span> Monte Carlo and Quasi-Monte Carlo Methods</h3>
 <div class="outline-text-3" id="text-1-3">
 <p>
 Quasi-Monte Carlo methods are used for numerical integration by using low-discrepancy sequences.  The problem which the Monte Carlo as well as the quasi-Monte Carlo methods try to solve, is to approximate the integral of a function \(f\) on, say, the \(d\)-dimensional unit cube as the average of the function evaluated at a set of points \(\vector{u}_1, ..., \vector{u}_N \in [0,1]^d\):
@@ -466,7 +476,7 @@ The difference between the Monte Carlo and the quasi-Monte Carlo methods is choi
 </div>
 
 <ol class="org-ol">
-<li><a id="orge3cdeb6"></a>Definition Discrepancy<br />
+<li><a id="org29d81f2"></a>Definition Discrepancy<br />
 <div class="outline-text-5" id="text-1-3-0-1">
 <blockquote>
 <p>
@@ -482,7 +492,7 @@ A slightly simpler characterization of discrepancy is the star discrepancy.
 </div>
 </li>
 
-<li><a id="orgcdedd36"></a>Definition Star Discrepancy<br />
+<li><a id="org26c0df2"></a>Definition Star Discrepancy<br />
 <div class="outline-text-5" id="text-1-3-0-2">
 <blockquote>
 <p>
@@ -503,7 +513,7 @@ In order to be able to quantify the convergence of the quasi-Monte Carlo method 
 </div>
 </li>
 
-<li><a id="org5a16cdf"></a>Lower Bounds<br />
+<li><a id="org075bc1c"></a>Lower Bounds<br />
 <div class="outline-text-5" id="text-1-3-0-3">
 <p>
 It is conjuctured that the lower bound of the star discrepancy for each finite set \(\set{\vector{u}_1, ...,\vector{u}_N}\subset[0,1]^d\) is \(C_d\frac{\log(N)^{d-1}}{N}\) for some constant \(C_D>0\) depending only on the dimension \(d\).
@@ -511,7 +521,7 @@ It is conjuctured that the lower bound of the star discrepancy for each finite s
 </div>
 </li>
 
-<li><a id="orgfa269e9"></a>Estimation of the Discrepancy<br />
+<li><a id="org5ba44da"></a>Estimation of the Discrepancy<br />
 <div class="outline-text-5" id="text-1-3-0-4">
 <p>
 Directly computing the discrepancy of a sequence of numbers is exponentially difficult with growing dimension.  The <i>Erdős-Turán-Koksma</i> inequality provides an upper bound for the star discrepancy:  For points \(\vector{u}_1, ..., \vector{u}_N\) in \([0,1]^d\) and some arbitrary positive integer \(H\), we have
@@ -529,8 +539,8 @@ D_N^*(\vector{u}_1, ..., \vector{u}_N)
 </ol>
 
 
-<div id="outline-container-org750cdd5" class="outline-4">
-<h4 id="org750cdd5"><span class="section-number-4">1.3.1.</span> The Koksma-Hlawka Inequality</h4>
+<div id="outline-container-org9e78510" class="outline-4">
+<h4 id="org9e78510"><span class="section-number-4">1.3.1.</span> The Koksma-Hlawka Inequality</h4>
 <div class="outline-text-4" id="text-1-3-1">
 <blockquote>
 <p>
@@ -564,8 +574,8 @@ The variation of \(f\) over \(\mathcal{C}\) is
 </div>
 </div>
 
-<div id="outline-container-org1f0de8d" class="outline-4">
-<h4 id="org1f0de8d"><span class="section-number-4">1.3.2.</span> Definition Bounded Variation in the sense of Vitali-Lebesgue-Fréchet-de la Vallée Poussin</h4>
+<div id="outline-container-org086d5b7" class="outline-4">
+<h4 id="org086d5b7"><span class="section-number-4">1.3.2.</span> Definition Bounded Variation in the sense of Vitali-Lebesgue-Fréchet-de la Vallée Poussin</h4>
 <div class="outline-text-4" id="text-1-3-2">
 <blockquote>
 <p>
@@ -581,8 +591,8 @@ For a subset \(I\subseteq\set{1, ..., d}\) we write
 </div>
 </div>
 
-<div id="outline-container-org6f7c7df" class="outline-4">
-<h4 id="org6f7c7df"><span class="section-number-4">1.3.3.</span> Definition Bounded Variation in the sense of Hardy and Krause</h4>
+<div id="outline-container-orgc6a9aad" class="outline-4">
+<h4 id="orgc6a9aad"><span class="section-number-4">1.3.3.</span> Definition Bounded Variation in the sense of Hardy and Krause</h4>
 <div class="outline-text-4" id="text-1-3-3">
 <blockquote>
 <p>
@@ -593,8 +603,8 @@ The variation of \(f\) in the sense of Hardy and Krause is
 </div>
 </div>
 
-<div id="outline-container-orga409294" class="outline-4">
-<h4 id="orga409294"><span class="section-number-4">1.3.4.</span> Applying the Koksma-Hlawka Inequality</h4>
+<div id="outline-container-orgd485258" class="outline-4">
+<h4 id="orgd485258"><span class="section-number-4">1.3.4.</span> Applying the Koksma-Hlawka Inequality</h4>
 <div class="outline-text-4" id="text-1-3-4">
 <p>
 If the valuation function \(V\) of the present value \(\mathcal{V}\) is bounded in the sense of Hardy and Krause, then, given a sample \(\set{u_1, ..., u_N}\) of the \(d\)-multivariate standard uniformly distributed random variable \(U\), we have
@@ -604,8 +614,8 @@ If the valuation function \(V\) of the present value \(\mathcal{V}\) is bounded 
 </div>
 </div>
 
-<div id="outline-container-orgd54f877" class="outline-3">
-<h3 id="orgd54f877"><span class="section-number-3">1.4.</span> Sobol' Numbers</h3>
+<div id="outline-container-org6977760" class="outline-3">
+<h3 id="org6977760"><span class="section-number-3">1.4.</span> Sobol' Numbers</h3>
 <div class="outline-text-3" id="text-1-4">
 <p>
 In order to improve the approximation result in Monte Carlo simulations, an idea is to use quasi-random numbers which generate low discrepancy sequences.  There are several methods for generating low discrepancy sequences. One of them are the Sobol' Numbers.
@@ -617,17 +627,17 @@ It can be shown that the star discrepancy of a \(d\)-dimensional Sobol' number s
 </p>
 </div>
 
-<div id="outline-container-org0cd2d39" class="outline-4">
-<h4 id="org0cd2d39"><span class="section-number-4">1.4.1.</span> Generation of Sobol' Numbers</h4>
+<div id="outline-container-org6c2a382" class="outline-4">
+<h4 id="org6c2a382"><span class="section-number-4">1.4.1.</span> Generation of Sobol' Numbers</h4>
 <div class="outline-text-4" id="text-1-4-1">
 <p>
-For generating Sobol' number sequences, see for instance <a href="#orgfbd50dc">[8]</a>. The R library <code>SobolSequence</code> implements the algorithm by S. Joe and F. Y. Kuo (see <a href="https://cran.r-project.org/web/packages/SobolSequence/vignettes/sobolsequence.html">https://cran.r-project.org/web/packages/SobolSequence/vignettes/sobolsequence.html</a> and   <a href="https://web.maths.unsw.edu.au/~fkuo/sobol/">https://web.maths.unsw.edu.au/~fkuo/sobol/</a>) and also allows for generating randomized point by digital shift.
+For generating Sobol' number sequences, see for instance <a href="#org23b3ab6">[8]</a>. The R library <code>SobolSequence</code> implements the algorithm by S. Joe and F. Y. Kuo (see <a href="https://cran.r-project.org/web/packages/SobolSequence/vignettes/sobolsequence.html">https://cran.r-project.org/web/packages/SobolSequence/vignettes/sobolsequence.html</a> and   <a href="https://web.maths.unsw.edu.au/~fkuo/sobol/">https://web.maths.unsw.edu.au/~fkuo/sobol/</a>) and also allows for generating randomized point by digital shift.
 </p>
 </div>
 </div>
 
-<div id="outline-container-orgf593a62" class="outline-4">
-<h4 id="orgf593a62"><span class="section-number-4">1.4.2.</span> Correlation of the Coordinate Samples</h4>
+<div id="outline-container-org7dcb18b" class="outline-4">
+<h4 id="org7dcb18b"><span class="section-number-4">1.4.2.</span> Correlation of the Coordinate Samples</h4>
 <div class="outline-text-4" id="text-1-4-2">
 <p>
 A problem with the Sobol' sequence \(S=\set{\vector{s}_1, ..., \vector{s}_N}\subset[0,1]^d\) is that when we consider the samples of the coefficients \(\parens{\component{S}{1}, ..., \component{S}{d}} = \parens{\parens{\component{s_1}{1}, ..., \component{s_N}{1}}, ..., \parens{\component{s_1}{d}, ..., \component{s_N}{d}}}\), those \(\component{S}{i}\) are not independent for high dimensionality (\(d \gg 90)\). This means that the results explained in previous sections are not applicable.  In particular,  \(\vector\Phi^{-1}(S)\) is not a sample of a multivariate normal distribution which implies as consequence that for some \(d\times d\) matrix \(A\), the vectors \(A\vector\Phi^{-1}(S)\) are also not a sample of a multivariate normal distribution.  In fact, even the marginals \(\component{A\vector\Phi^{-1}(S)}{i}\) are not samples of normal distributions.
@@ -649,49 +659,49 @@ A problem with the Sobol' sequence \(S=\set{\vector{s}_1, ..., \vector{s}_N}\sub
 
 
 
-<div id="outline-container-org5febbc1" class="outline-2">
-<h2 id="org5febbc1"><span class="section-number-2">2.</span> References</h2>
+<div id="outline-container-orgac6094f" class="outline-2">
+<h2 id="orgac6094f"><span class="section-number-2">2.</span> References</h2>
 <div class="outline-text-2" id="text-2">
 <p>
-<a id="org41dcb95">[1]</a> James A. Clarkson, Raymond Adams, <i>On Definitions of Bounded Variation for Functions of Two Variables</i>, American Mathematical Society, 1932, <a href="https://www.ams.org/journals/tran/1933-035-04/S0002-9947-1933-1501718-2/S0002-9947-1933-1501718-2.pdf">https://www.ams.org/journals/tran/1933-035-04/S0002-9947-1933-1501718-2/S0002-9947-1933-1501718-2.pdf</a>
+<a id="org8f56bff">[1]</a> James A. Clarkson, Raymond Adams, <i>On Definitions of Bounded Variation for Functions of Two Variables</i>, American Mathematical Society, 1932, <a href="https://www.ams.org/journals/tran/1933-035-04/S0002-9947-1933-1501718-2/S0002-9947-1933-1501718-2.pdf">https://www.ams.org/journals/tran/1933-035-04/S0002-9947-1933-1501718-2/S0002-9947-1933-1501718-2.pdf</a>
 </p>
 
 <p>
-<a id="orgab322ac">[2]</a> <i>Low-discrepancy sequence</i>, Wikipedia, <a href="https://en.wikipedia.org/wiki/Low-discrepancy_sequence">https://en.wikipedia.org/wiki/Low-discrepancy_sequence</a>
+<a id="org065da02">[2]</a> <i>Low-discrepancy sequence</i>, Wikipedia, <a href="https://en.wikipedia.org/wiki/Low-discrepancy_sequence">https://en.wikipedia.org/wiki/Low-discrepancy_sequence</a>
 </p>
 
 <p>
-<a id="org33c84c5">[3]</a>  Christoph Aistleitner, Florian Pausinger, Anne Marie Svane, Robert F. Tichy, <i>On functions of bounded variation</i>, Mathematical Proceedings of the Cambridge Philosophical Society -1(3), June13 2016, <a href="https://arxiv.org/pdf/1510.04522">https://arxiv.org/pdf/1510.04522</a>
+<a id="org3dc230e">[3]</a>  Christoph Aistleitner, Florian Pausinger, Anne Marie Svane, Robert F. Tichy, <i>On functions of bounded variation</i>, Mathematical Proceedings of the Cambridge Philosophical Society -1(3), June13 2016, <a href="https://arxiv.org/pdf/1510.04522">https://arxiv.org/pdf/1510.04522</a>
 </p>
 
 <p>
-<a id="org8b7aec3">[4]</a> Art B. Owen, <i>Multidimensional variation for quasi-Monte Carlo</i>, Contemporary multivariate
+<a id="orgbc69b87">[4]</a> Art B. Owen, <i>Multidimensional variation for quasi-Monte Carlo</i>, Contemporary multivariate
 analysis and design of experiments, 49-74, Ser. Biostat. 2, World Sci. Publ., Hackensack,
 NJ, 2005, <a href="https://artowen.su.domains/reports/ktfang.pdf">https://artowen.su.domains/reports/ktfang.pdf</a>
 </p>
 
 <p>
-<a id="org3b31600">[5]</a> Mathieu Cambou, Marius Hofert, Christiane Lemieux, <i>Quasi-random numbers for copula models</i>, 2015, <a href="https://arxiv.org/pdf/1508.03483">https://arxiv.org/pdf/1508.03483</a>
+<a id="orgd390c68">[5]</a> Mathieu Cambou, Marius Hofert, Christiane Lemieux, <i>Quasi-random numbers for copula models</i>, 2015, <a href="https://arxiv.org/pdf/1508.03483">https://arxiv.org/pdf/1508.03483</a>
 </p>
 
 <p>
-<a id="orga91cda3">[6]</a> Sumin Wang, Chenxian Huang, Yongdao Zhou, Min-Qian Liu, <i>An Efficient Quasi-Random Sampling for Copulas</i>, March 11 2024, <a href="https://arxiv.org/pdf/2403.05281">https://arxiv.org/pdf/2403.05281</a> 
+<a id="org35aa463">[6]</a> Sumin Wang, Chenxian Huang, Yongdao Zhou, Min-Qian Liu, <i>An Efficient Quasi-Random Sampling for Copulas</i>, March 11 2024, <a href="https://arxiv.org/pdf/2403.05281">https://arxiv.org/pdf/2403.05281</a> 
 </p>
 
 <p>
-<a id="org4955108">[7]</a> K'ai-T'ai Fang, Samuel Kotz, Kai Wang Ng, <i>Symmetric Multivariate and Related
+<a id="org5bc957d">[7]</a> K'ai-T'ai Fang, Samuel Kotz, Kai Wang Ng, <i>Symmetric Multivariate and Related
  Distributions,</i> 1990, Chapman &amp; Hall/CRC
 </p>
 
 <p>
-<a id="orgfbd50dc">[8]</a> <i>Sobol sequence</i>, Wikipedia,
+<a id="org23b3ab6">[8]</a> <i>Sobol sequence</i>, Wikipedia,
 <a href="https://en.wikipedia.org/wiki/Sobol_sequence">https://en.wikipedia.org/wiki/Sobol_sequence</a>
 </p>
 </div>
 </div>
 </div>
 <div id="postamble" class="status">
-<p class="date">Created: 2024-12-17 Di 18:06</p>
+<p class="date">Created: 2024-12-18 Mi 14:28</p>
 <p class="validation"><a href="https://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>

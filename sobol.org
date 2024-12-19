@@ -32,20 +32,24 @@ In this note, we discuss the possible use of Sobol' numbers in the generation pr
 
 The random value of a balance sheet of financial instruments in this model is a measurable function $V_0:\R^D\to\R$ and the present value is $\mathcal{V}=\expect{V_0(\vector{X})}$.
 
+An important part of the model is the dependence structure of the random vector $\vector{X}$ which we shall investigate in the next section.
+
+** Dependence Structure
+
 By Sklar's theorem, there exists a unique copula $C_H:[0,1]^D\to[0,1]$, with  $$\vector{H}(\vector{x}) = \explicitVector{F_1(\component{x}{1})}{F_D(\component{x}{D})}\text.$$
 This means that the dependence structure of $\vector{X}$ is expressed by the copula function which allows us to write the present value $\mathcal{V}$ as
 $$V = \expect{V(\vector{U})} = \expect{V_0(\vector{X})}\text,$$
 where $\vector{U}=\explicitComponentVector{U}{D}:\Omega\to\R^D$ is a random vector with distribution function $C_H$ and the function $V$ is defined as
-$$V=V_0\circ{}F_1^-\times\ldots\times{}F_D^-$$
+$$V=V_0\circ\parens{F_1^-\times\ldots\times{}F_D^-}$$
 with, for $1\leq d\leq D$, the marginal quantile functions
 $$F_d^-(p) = \inf\set{x\in\R\mid F_d(x)\geq p}\text.$$
 
 Hence, if $C_H$ and the margins $F_d$, $1\leq d\leq D$, are known, we can use Monte Carlo simulation to estimate $\mathcal{V} = \expect{V(\vector{U})}$.  For a random sample $\set{\vector{u}_1,...,\vector{u}_N}$ from $C_H$, the Monte Carlo estimator of $\mathcal{V}$ is
-$$\sampleMean{i}{N}{V(\vector{u}_i)} \simeq \expect{V(\vector{U})}\text.$$
+$$\sampleMean{i}{N}{V(\vector{u}_i)} \approx \expect{V(\vector{U})}\text.$$
 
 The remaining problem is to find a way to sample $\vector{U}\sim C_H$.
 
-** Conditional Distribution Method
+*** Conditional Distribution Method
 
 A method for creating samples of $\vector{U}\sim C_H$ is for instance described in [5], and is called /conditional distribution method (CDM)/.  The idea is, given a copula $C$, to find a transformation function $\phi_C:[0,1]^d\to[0,1]^d$ which transforms a uniformly distributed random vector $\vector{U}' \sim \mathrm{U}[0,1,]^d$ into a random vector $\vector{U} := \phi_C(\vector{U}') \sim C$.
 
@@ -92,7 +96,7 @@ with
 \tilde{\rho}_k &= \rho_k - \transpose{\vector{\rho}}_k \Rho_{(k)}^{-1} \vector{\rho}_k\\
 \end{align*}
 and where we decompose the correlation matrix $\Rho_{(k+1)}$ into following blocks
-$$\Rho &= \left(\begin{matrix}\Rho_{(k)}&\vector{\rho}_k\\ \transpose{\vector{\rho}}_k& \rho_k \end{matrix}\right)\text,$$
+$$\Rho = \left(\begin{matrix}\Rho_{(k)}&\vector{\rho}_k\\ \transpose{\vector{\rho}}_k& \rho_k \end{matrix}\right)\text,$$
 with $\Rho_{(k)}$ the upper left $k\times k$ submatrix of $\Rho_{(k+1)}$ and writing $\Rho_{(d)}=\Rho$.
 
 Hence, using the corollary above, the \(k\)-th conditional copula of the Gaussian copula $C = \Phi_{\vector{0},\Rho}\circ\vector{\Phi^{-1}}$ is
